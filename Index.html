@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Future Predictor</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#09161f;--ink:#fff;--mute:rgba(255,255,255,.72);--line:rgba(255,255,255,.22);--energy:#ffb454;--mood:#74c8ff;--ok:#6ee7a0;--mid:#ffd36b;--bad:#ff8a7a;--tx:0vw;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#09161f}}
+:root[data-theme="dark"]{--bg:#09161f}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.5;background:var(--bg);min-height:100vh}
+.bg{position:fixed;top:0;bottom:0;left:-100vw;width:300vw;z-index:-1;background:linear-gradient(135deg,#101827,#172235 55%,#0b1220);transition:transform .9s cubic-bezier(.2,.8,.2,1)}
+main{max-width:920px;margin:0 auto;padding:28px 18px 48px}
+h1{font-size:clamp(2rem,6vw,3.2rem);font-weight:800;letter-spacing:-.02em;line-height:1.05;margin:0 0 8px}
+.sub{color:var(--mute);margin:0 0 20px;max-width:60ch}
+.card{position:relative;background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.05));-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);border:1px solid rgba(255,255,255,.3);border-radius:28px;padding:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(255,255,255,.12),0 12px 40px rgba(0,0,0,.35)}
+.card::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(120% 55% at 12% 0%,rgba(255,255,255,.26),transparent 60%);pointer-events:none}
+.card>*{position:relative}
+.days{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px 12px;border-radius:999px}
+.days .lab{flex:1;text-align:center;font-weight:600}
+.days small{display:block;font-weight:400;color:var(--mute)}
+.chart-wrap{overflow-x:auto}
+svg{width:100%;min-width:520px;height:auto;display:block}
+.legend{display:flex;gap:16px;font-size:.9rem;color:var(--mute);margin-bottom:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+h2{font-size:1.05rem;margin:0 0 12px;font-weight:600}
+label{display:block;font-size:.92rem;margin-top:12px}
+label b{float:right;font-weight:600}
+input[type=range]{width:100%;accent-color:var(--energy)}
+.week{display:flex;align-items:flex-end;gap:6px;height:70px;margin:6px 0 4px}
+.week div{flex:1;background:var(--mood);border-radius:6px 6px 0 0;opacity:.6;cursor:pointer}
+.week div.sel{background:var(--energy);opacity:1}
+.week div.empty{opacity:.25}
+.week div.sel.empty{background:var(--energy);opacity:.55}
+.week-l{display:flex;gap:6px;font-size:.72rem;color:var(--mute)}
+.week-l span{flex:1;text-align:center}
+.risk{display:flex;gap:10px}
+.risk div{flex:1;border:1px solid var(--line);border-radius:16px;padding:10px;text-align:center;background:rgba(255,255,255,.06)}
+.risk strong{display:block;font-size:1.6rem}
+.risk small{color:var(--mute)}
+.advice{margin-top:16px}
+.advice p{margin:6px 0}
+.fine{font-size:.8rem;color:var(--mute);margin-top:18px}
+button{font:inherit;padding:8px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.14);color:var(--ink);cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+button:disabled{opacity:.35;cursor:default}
+button.rs{margin-top:14px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--mood);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip small{color:var(--mute);margin-left:4px}
+.cafrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cafrow label{display:inline;margin:0}
+input[type=number],input[type=time]{font:inherit;color:var(--ink);background:rgba(255,255,255,.12);border:1px solid var(--line);border-radius:12px;padding:6px 10px;color-scheme:dark}
+input[type=number]{width:90px}
+.dose{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.dose button{padding:0 10px}
+#cstats{margin-top:12px}
+#cmsg{font-size:.92rem;color:var(--ink);margin-top:12px}
+#cmsg p{margin:6px 0 0}
+@media (prefers-reduced-motion:reduce){.bg{transition:none}}
+
+.bg-media{position:fixed;inset:0;z-index:-2;display:none;overflow:hidden;background:#000}.bg-media img,.bg-media video{width:100%;height:100%;object-fit:cover;display:block}.bg-open{position:fixed;right:16px;top:16px;z-index:20}.bg-panel{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:rgba(0,0,0,.55);backdrop-filter:blur(8px)}.bg-panel[hidden]{display:none}.bg-panel-inner{width:min(92vw,420px);background:rgba(20,28,42,.92);border:1px solid rgba(255,255,255,.25);border-radius:24px;padding:20px;color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.45)}.bg-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.bg-head h2{margin:0}.upload{display:block;text-align:center;padding:14px 16px;border:1px dashed rgba(255,255,255,.4);border-radius:16px;cursor:pointer;margin:14px 0}.upload input{display:none}.bg-panel .rs{width:100%}
+</style>
+<style>
+#coffeeSection,#noCoffeeSection,#screenSection{display:none}
+#coffeeSection b,#screenSection b{float:right}
+#noCoffeeSection input{width:auto}
+</style>
+<style>
+#ai{position:fixed;top:0;right:0;bottom:0;width:340px;z-index:15;display:flex;flex-direction:column;padding:14px;background:rgba(14,22,34,.72);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);border-left:1px solid rgba(255,255,255,.25)}
+#ai[hidden]{display:none}
+.ai-head{display:flex;justify-content:space-between;align-items:center}.ai-head h2{margin:0}
+#aiLog{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:10px 0}
+.am{padding:8px 12px;border-radius:16px;max-width:92%;font-size:.92rem;border:1px solid var(--line);background:rgba(255,255,255,.08)}
+.am.me{align-self:flex-end;background:rgba(116,200,255,.28);border-color:rgba(116,200,255,.5)}
+.aichips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}.aichips button{padding:4px 10px;font-size:.8rem}
+.aisend{display:flex;gap:8px}
+#aiMsg{flex:1;min-width:0;font:inherit;color:var(--ink);background:rgba(255,255,255,.12);border:1px solid var(--line);border-radius:999px;padding:8px 14px}
+#aiMsg:focus-visible{outline:3px solid var(--mood);outline-offset:2px}
+#aiOpen{position:fixed;left:16px;top:16px;z-index:20}
+body.ai-open{padding-right:340px}
+body.ai-open .bg-open{right:356px}
+@media(max-width:1000px){body.ai-open{padding-right:0}body.ai-open .bg-open{right:16px}#ai{top:auto;width:100%;height:70vh;border-left:0;border-top:1px solid rgba(255,255,255,.25);border-radius:24px 24px 0 0}}
+</style>
+</head>
+<body>
+<div class="bg" id="bg"></div>
+<div class="bg-media" id="bgMedia" aria-hidden="true"></div>
+<button class="bg-open" id="bgOpen" type="button">🖼️ Background</button>
+<div class="bg-panel" id="bgPanel" hidden>
+  <div class="bg-panel-inner" role="dialog" aria-modal="true" aria-labelledby="bgTitle">
+    <div class="bg-head"><h2 id="bgTitle">Background</h2><button id="bgClose" type="button" aria-label="Close background settings">✕</button></div>
+    <p class="fine">Upload a PNG image or MP4 video to use as the background.</p>
+    <label class="upload">Choose PNG / JPEG / MP4<input id="bgFile" type="file" accept="image/png,image/jpeg,image/jpg,video/mp4"></label>
+    <button id="bgClear" type="button" class="rs">Remove background</button>
+  </div>
+</div>
+<button id="aiOpen" type="button" aria-expanded="false">✨ Assistant</button>
+<aside id="ai" aria-label="Forecast assistant" hidden>
+  <div class="ai-head"><h2>Forecast assistant</h2><button id="aiClose" type="button" aria-label="Close assistant">✕</button></div>
+  <p class="fine" style="margin:4px 0 0">Answers only about your forecast. Tell it a value (like "I slept 5 hours") and it updates the page.</p>
+  <div id="aiLog" aria-live="polite"></div>
+  <div class="aichips">
+    <button type="button" data-q="Ask me one short question that would improve my forecast.">Ask me a question</button>
+    <button type="button" data-q="When will I crash and what can I do about it?">When will I crash?</button>
+    <button type="button" data-q="What is the single best change I can make today?">Best change?</button>
+  </div>
+  <div class="aisend"><input id="aiMsg" type="text" maxlength="300" placeholder="Ask about your forecast" aria-label="Your question"><button id="aiSend" type="button">Send</button></div>
+</aside>
+<main>
+<h1>Know how Friday will feel before Friday.</h1>
+<p class="sub">Future Predictor forecasts your energy, mood and headache risk for the next few days from your age, sleep, activity, caffeine, screen time and work schedule. Add your age and any coffee or energy drinks to see your energy curve and when you will crash. Start by logging tonight, then step back to fill in earlier days.</p>
+
+<div class="card days" role="group" aria-label="Choose a day">
+<button id="prev" type="button" aria-label="Earlier day">&lsaquo; Earlier</button>
+<div class="lab" id="dayLab" aria-live="polite"></div>
+<button id="next" type="button" aria-label="Later day">Later &rsaquo;</button>
+</div>
+
+<section class="card" aria-label="Forecast">
+<div class="legend"><span><i style="background:var(--energy)"></i>Energy</span><span><i style="background:var(--mood)"></i>Mood</span><span id="cafLeg"></span><span id="cap"></span></div>
+<div class="chart-wrap"><svg id="chart" viewBox="0 0 640 240" role="img" aria-label="Forecast chart of energy and mood for 72 hours"></svg></div>
+</section>
+
+<section class="card advice" aria-live="polite">
+<h2>Your forecast</h2>
+<div id="advice"></div>
+</section>
+
+<div class="grid">
+<section class="card">
+<h2>About you</h2>
+<label for="age">Your age (years)</label>
+<input id="age" type="number" inputmode="numeric" min="12" max="100" value="30">
+<p class="fine" id="ageNote"></p>
+</section>
+<section class="card">
+<h2 id="cafT">Caffeine</h2>
+<label for="ctime" style="margin-top:0">Time of day <span class="fine" style="margin:0">(also shows your energy at that time)</span></label>
+<input id="ctime" type="time" value="08:00">
+<div class="chips" id="chips">
+<button type="button" class="chip" data-mg="95" data-n="Coffee">&#9749; Coffee <small>95</small></button>
+<button type="button" class="chip" data-mg="64" data-n="Espresso">Espresso <small>64</small></button>
+<button type="button" class="chip" data-mg="47" data-n="Tea">Tea <small>47</small></button>
+<button type="button" class="chip" data-mg="34" data-n="Cola">Cola <small>34</small></button>
+<button type="button" class="chip" data-mg="160" data-n="Energy drink">Energy drink <small>160</small></button>
+</div>
+<div class="cafrow"><label for="cmg">Custom mg</label><input id="cmg" type="number" min="5" max="600" step="5" value="100"><button id="cadd" type="button">Add</button></div>
+<div id="clist"></div>
+<div class="risk" id="cstats"></div>
+<div id="cmsg"></div>
+</section>
+</div>
+
+<div class="grid">
+<section class="card">
+<h2 id="planT">Change this day</h2>
+<label><span id="lSleep">Sleep</span> <b id="vSleep"></b><input id="sleep" type="range" min="3" max="12" step="0.5" value="6"></label>
+<label>Activity that day <b id="vSteps"></b><input id="steps" type="range" min="0" max="20000" step="500" value="4000"></label>
+<label>Work load the next day <b id="vMeet"></b><input id="meet" type="range" min="0" max="12" step="1" value="6"></label>
+<label id="coffeeSection"><span>☕ Last caffeinated drink today (affects tonight's sleep)</span> <b id="vCoffee">12:00 PM</b><input id="coffee" type="range" min="0" max="1439" step="15" value="720"></label>
+<label id="noCoffeeSection"><input id="noCoffee" type="checkbox"> No caffeine day</label>
+<label id="screenSection"><span>🖥️ Screen time that day</span> <b id="vScreen">0h 0m</b><input id="screen" type="range" min="0" max="1440" step="15" value="0"></label>
+<button class="rs" id="reset" type="button">Reset this day</button>
+</section>
+
+<section class="card">
+<h2>Headache risk</h2>
+<div class="risk" id="risk"></div>
+<h2 style="margin-top:18px">Sleep by night (tap to open a day)</h2>
+<div class="week" id="week"></div>
+<div class="week-l" id="weekl"></div>
+</section>
+</div>
+
+<p class="fine">Wellness forecasting, not medical advice. Age and caffeine effects use population averages, so real responses vary. Nights you haven't logged are treated as typical sleep. Your forecast numbers and the questions you ask the assistant are sent to the AI service through your own server.</p>
+</main>
+
+<script>
+var DAYS=[null,null,null,null,null,null,null,null], DRAFT={sleep:7,steps:5000,meet:6,coffeeNo:false,coffeeTime:720,screenTime:0};
+var TODAY=DAYS.length-1, idx=TODAY, STEP=14;
+var $=function(id){return document.getElementById(id)};
+var AGE=30, CAF={};
+function sleepNeed(){return AGE<18?9:AGE<26?8:AGE<65?7.5:7}
+function shift(){return clamp((38-AGE)/15,-1.2,1.7)}
+function sens(){return clamp(1+(AGE-35)/120,.85,1.4)}
+function ageE(){return clamp((40-AGE)*.1,-4,3)}
+function halfLife(){return AGE<18?4.2:4.8+clamp((AGE-30)/25,0,2)}
+function cafScale(){return AGE<18?1.25:AGE>=60?1.1:1}
+function limitMg(){return AGE<18?100:400}
+function ft(h){h=((h%24)+24)%24;var H=Math.floor(h),M=Math.round((h-H)*60);if(M===60){H=(H+1)%24;M=0}return (H%12||12)+(M?':'+(M<10?'0':'')+M:'')+(H>=12?'pm':'am')}
+function setH(id,h){var e=$(id);if(e._h!==h){e.innerHTML=h;e._h=h}}
+function cf(){return CAF[idx]||(CAF[idx]=[])}
+function cafTotal(){return (CAF[idx]||[]).reduce(function(a,d){return a+d.mg},0)}
+function cfAt(G,t){return G?G.C[clamp(Math.round(t*4),0,384)]:0}
+/* Caffeine: one-compartment absorption/clearance (half-life depends on age). Boost saturates with dose.
+   Blocked adenosine builds up while caffeine is active and is paid back as it wears off (the crash). */
+function cafGrid(D){
+  var ka=4,ke=Math.LN2/halfLife(),sc=cafScale(),A=[],E=[],C=[],a=0,m=0,tm=0,i,t;
+  for(i=0;i<385;i++){t=i/4;var x=0;
+    D.forEach(function(d){var u=t-24-d.h;if(u>0)x+=d.mg*ka/(ka-ke)*(Math.exp(-ke*u)-Math.exp(-ka*u))});
+    var e=24*(1-Math.exp(-x*sc/110));
+    a+=(.25*e-a/8)*.25;
+    if(e>m){m=e;tm=t}
+    A.push(x);E.push(e);C.push(e-a)}
+  var cr=null,lo=0,lt=tm,j;
+  if(m>0){for(i=Math.round(tm*4);i<385;i++)if(C[i]<-1){cr=i/4;break}
+    if(cr!==null)for(j=Math.round(cr*4);j<385&&j<=Math.round((cr+4)*4);j++)if(C[j]<lo){lo=C[j];lt=j/4}}
+  return {A:A,C:C,pk:{t:tm,v:m},crash:cr,low:{t:lt,v:lo}}}
+function cafSummary(p,M){
+  var D=CAF[idx]||[],G=M.k.G,tot=cafTotal(),lim=limitMg(),o={adv:'',stats:'',msg:''};
+  if(!DAYS[idx]){o.msg='Save this day first (button on the left), then your caffeine forecast appears here.';return o}
+  var q=($('ctime').value||'08:00').split(':'),qh=(+q[0])+(+q[1]||0)/60,en=at(p,M.k,24+qh).e;
+  var lead='<b>Energy at '+ft(qh)+': '+Math.round(en)+'/100</b> ('+lvl(en)+'). ';
+  if(!D.length){o.msg=lead+'Tap a drink above to add it at that time and see when it wears off.';return o}
+  var pk=at(p,M.k,G.pk.t),nc=at(p,M.k,G.pk.t,true),bed=G.A[188]||0,w='';
+  var cr=G.crash===null?null:ft(G.crash-24),dip=Math.round(-G.low.v);
+  var txt='Peak buzz around '+ft(G.pk.t-24)+' (energy about '+Math.round(pk.e)+', +'+Math.round(pk.e-nc.e)+' from caffeine). '+
+    (cr?'You will start to crash around <b>'+cr+(G.crash>=48?' (next day)':'')+'</b>'+(dip>=1?', dipping about '+dip+' points below your no-caffeine level near '+ft(G.low.t-24)+'.':'.'):'No crash expected within the next day.');
+  if(tot>lim)w+='<p>'+tot+' mg is above the ~'+lim+' mg daily guideline for your age.</p>';
+  if(bed>=50)w+='<p>About '+Math.round(bed)+' mg will still be active at 11pm and may cost you sleep.</p>';
+  o.msg=lead+txt+w;
+  o.adv='<p>\u2615 '+txt+'</p>'+w;
+  o.stats='<div><small>Peak energy</small><strong>'+Math.round(pk.e)+'</strong><small>'+ft(G.pk.t-24)+'</small></div>'+
+    '<div><small>Crash starts</small><strong style="color:var(--bad)">'+(cr&&G.crash<48?ft(G.crash-24):'\u2014')+'</strong><small>'+(dip>=1?'down ~'+dip+' pts':'')+'</small></div>'+
+    '<div><small>Caffeine</small><strong style="color:'+(tot>lim?'var(--bad)':'inherit')+'">'+tot+' mg</strong><small>limit '+lim+'</small></div>';
+  return o}
+function cafUI(CS){
+  var D=CAF[idx]||[];
+  $('cafT').textContent='Caffeine on '+dateOf(idx+1).toLocaleDateString('en',{weekday:'long',day:'numeric',month:'short'});
+  setH('clist',D.map(function(d,i){return '<div class="dose"><span>'+ft(d.h)+' \u00b7 '+d.n+' \u00b7 '+d.mg+' mg</span><button type="button" data-r="'+i+'" aria-label="Remove '+d.n+' at '+ft(d.h)+'">\u00d7</button></div>'}).join(''));
+  setH('cstats',CS.stats);setH('cmsg',CS.msg)}
+function ageUI(){
+  var raw=parseInt($('age').value,10);
+  setH('ageNote',(raw<12?'This model is built for ages 12 and up, so it is using '+AGE+'. ':'')+'At '+AGE+' you need about '+sleepNeed()+' h of sleep, your energy peaks near '+ft(10+shift())+', and caffeine takes about '+halfLife().toFixed(1)+' h to halve.'+(AGE<18?' Under 18, health guidance is to keep caffeine under about 100 mg a day.':''))}
+function addDose(mg,n){
+  mg=clamp(Math.round(+mg)||0,5,600);var t=($('ctime').value||'08:00').split(':'),a=cf();
+  if(a.length>=12)return;
+  a.push({mg:mg,h:(+t[0])+(+t[1]||0)/60,n:n});a.sort(function(x,y){return x.h-y.h});render()}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function g(h,c,w){return Math.exp(-Math.pow((h-c)/w,2))}
+function circ(h){h=((h-shift())%24+24)%24;if(h>=23||h<6)return 24;if(h<7)return 38;return 50+26*g(h,10,3)+12*g(h,18,2.5)-24*g(h,15,1.6)}
+function lvl(v){return v<25?'very low':v<45?'low':v<65?'moderate':v<80?'high':'very high'}
+function fmt(h){h=Math.round(h)%24;var s=h>=12?'pm':'am';var x=h%12;return (x===0?12:x)+s}
+function dateOf(k){var d=new Date();d.setDate(d.getDate()-(TODAY-k));return d}
+function wd(k,o){return dateOf(k).toLocaleDateString('en',{weekday:'short'}).slice(0,3)}
+function startOf(){if(idx!==TODAY)return 21;var n=new Date();return n.getHours()+n.getMinutes()/60}
+function nowStr(sec){var o={hour:'numeric',minute:'2-digit'};if(sec)o.second='2-digit';return new Date().toLocaleTimeString('en',o).toLowerCase()}
+function at(p,k,t,nc){var h=t%24,d=Math.floor(t/24),work=(d===1&&p.meet>0&&h>=9&&h<9+p.meet)?p.meet:0;
+  var screen=Math.max(0,(p.screenTime||0)/60-3), screenPenalty=screen*.7;
+  var S=sens(),e=circ(h)+ageE()+p.steps/20000*6-(d===0?k.debt0*7*S:k.debt*8*S*[.3,1,.6,.3][d])-work*1.5-screenPenalty+(nc?0:cfAt(k.G,t));
+  return {h:h,d:d,e:clamp(e,5,98),m:clamp(.65*e+22-work*1.2-screenPenalty*1.1,5,98)}}
+function model(p,last,prev,s0){
+  var N=sleepNeed(),w=.5*p.sleep+.3*last+.2*prev,lateCaffeine=(!p.coffeeNo&&p.coffeeTime>=16*60),screenHours=(p.screenTime||0)/60;
+  var caffeineDebt=lateCaffeine?Math.min(.75,(p.coffeeTime-16*60)/60*.25+.25):0;
+  var screenDebt=Math.max(0,screenHours-5)*.08;
+  var k={debt:Math.max(0,N-w+caffeineDebt+screenDebt),debt0:Math.max(0,N-(.6*last+.4*prev)),G:cafGrid(CAF[idx]||[])},pts=[];
+  for(var i=0;i<=24;i++){var o=at(p,k,s0+i*3);o.i=i;pts.push(o)}
+  var tot=cafTotal(),over=tot>limitMg()?Math.min(15,Math.round((tot-limitMg())/20)+3):tot>=250?2:0;
+  var risk=[1,2,3].map(function(d){var r=8+k.debt*10*sens()*[1,.6,.3][d-1]+(d===1?over+(p.meet>5?(p.meet-5)*3:0):0)-(p.steps>8000?4:0)+Math.max(0,screenHours-5)*1.5+(lateCaffeine?3:0);return clamp(Math.round(r),3,95)});
+  return {pts:pts,risk:risk,debt:k.debt,k:k};
+}
+function prevs(){return [idx>0&&DAYS[idx-1]?DAYS[idx-1].sleep:sleepNeed(), idx>1&&DAYS[idx-2]?DAYS[idx-2].sleep:sleepNeed()]}
+function avgTm(p){var v=prevs(),r=model(p,v[0],v[1],startOf()).pts.filter(function(x){return x.d===1&&x.h>=8&&x.h<=20});return r.reduce(function(a,x){return a+x.e},0)/r.length}
+function path(pts,k){return pts.map(function(p,i){return (i?'L':'M')+(30+i/24*590).toFixed(1)+' '+(200-p[k]/100*170).toFixed(1)}).join(' ')}
+function tail(){
+  $('week').innerHTML=DAYS.map(function(d,i){return '<div class="'+(i===idx?'sel':'')+(d?'':' empty')+'" data-i="'+i+'" style="height:'+(d?d.sleep/12*100:6)+'%" title="'+(d?d.sleep+' h':'no data')+'" role="button" tabindex="0" aria-label="Open '+wd(i)+'"></div>'}).join('');
+  $('weekl').innerHTML=DAYS.map(function(d,i){return '<span>'+wd(i)+'</span>'}).join('');
+  document.documentElement.style.setProperty('--tx',(-(TODAY-idx)*STEP)+'vw');
+}
+function render(){
+  var rec=DAYS[idx],p=rec||DRAFT,v=prevs(),M=model(p,v[0],v[1],startOf());
+  var CS=cafSummary(p,M);cafUI(CS);ageUI();$('cafLeg').innerHTML='';
+  var isT=idx===TODAY, ds=dateOf(idx).toLocaleDateString('en',{weekday:'long',day:'numeric',month:'short'});
+  $('dayLab').innerHTML=(isT?'Today':idx===TODAY-1?'Yesterday':(TODAY-idx)+' days ago')+'<small>'+ds+(isT?' \u00b7 <span id="clk">'+nowStr(true)+'</span>':'')+'</small>';
+  $('prev').disabled=idx===0;$('next').disabled=isT;
+  $('cap').textContent=isT?'Forecast from now ('+nowStr()+')':'Forecast made that evening, 9pm';
+  $('planT').textContent=(rec?'Edit ':'Log ')+(isT?'tonight':wd(idx)+"'s record");
+  $('lSleep').textContent=isT?'Sleep tonight':'Sleep that night';
+  $('sleep').value=p.sleep;$('steps').value=p.steps;$('meet').value=p.meet;$('coffee').value=p.coffeeTime==null?720:p.coffeeTime;$('noCoffee').checked=!!p.coffeeNo;$('screen').value=p.screenTime||0;
+  $('vSleep').textContent=p.sleep<6?'Low':p.sleep<8?'Moderate':'High';$('vSteps').textContent=p.steps<4000?'Low':p.steps<8000?'Moderate':'High';$('vMeet').textContent=p.meet<4?'Light':p.meet<8?'Moderate':'Heavy';
+  var cv=p.coffeeTime==null?720:p.coffeeTime,ch=Math.floor(cv/60),cm=cv%60,cap=(ch%12||12)+':'+String(cm).padStart(2,'0')+' '+(ch<12?'AM':'PM');$('vCoffee').textContent=p.coffeeNo?'No caffeine':cap;$('vScreen').textContent=Math.floor((p.screenTime||0)/60)+'h '+((p.screenTime||0)%60)+'m';$('coffee').disabled=!!p.coffeeNo;
+  $('coffeeSection').style.display=isT?'block':'none';$('noCoffeeSection').style.display=isT?'block':'none';$('screenSection').style.display='block';
+  if(!rec){$('cap').textContent='';$('chart').innerHTML='<text x="320" y="115" text-anchor="middle" font-size="16" fill="rgba(255,255,255,.85)">No data for this day yet</text><text x="320" y="140" text-anchor="middle" font-size="13" fill="rgba(255,255,255,.65)">Log it in the panel below to see your forecast</text>';$('risk').innerHTML='<p class="fine" style="margin:0">Risk appears once you log a day.</p>';$('advice').innerHTML='<p>Nothing to forecast yet. Enter sleep, steps and work hours below, then tap Save.</p>';$('reset').textContent='Save and show forecast';tail();return}
+  $('reset').textContent='Clear this day';
+  $('cap').textContent='Tomorrow, '+dateOf(idx+1).toLocaleDateString('en',{weekday:'long',day:'numeric',month:'short'});
+  var s='',X=function(h){return 44+h/24*580},Y=function(v){return 200-v/100*170},T=[];
+  for(var h=0;h<=24;h++)T.push(at(p,M.k,24+h));
+  [0,50,100].forEach(function(v){s+='<line x1="44" y1="'+Y(v)+'" x2="624" y2="'+Y(v)+'" stroke="rgba(255,255,255,.15)"/>'});
+  [0,3,6,9,12,15,18,21,24].forEach(function(h){s+='<line x1="'+X(h)+'" y1="20" x2="'+X(h)+'" y2="200" stroke="rgba(255,255,255,.15)"/>'});
+  ['m','e'].forEach(function(k){s+='<path d="'+T.map(function(o,i){return (i?'L':'M')+X(i).toFixed(1)+' '+Y(o[k]).toFixed(1)}).join(' ')+'" fill="none" stroke="var(--'+(k==='e'?'energy':'mood')+')" stroke-width="'+(k==='e'?4:3)+'" stroke-linejoin="round"/>'});
+  var G=M.k.G,D=CAF[idx]||[];
+  if(D.length){
+    $('cafLeg').innerHTML='<span><i style="background:repeating-linear-gradient(90deg,var(--energy) 0 5px,transparent 5px 9px)"></i>Energy without caffeine</span>';
+    s+='<path d="'+T.map(function(o,i){return (i?'L':'M')+X(i).toFixed(1)+' '+Y(at(p,M.k,24+i,true).e).toFixed(1)}).join(' ')+'" fill="none" stroke="var(--energy)" stroke-width="2" stroke-dasharray="5 5" opacity=".65"/>';
+    if(G.crash!==null&&G.crash>=24&&G.crash<=48){var cx=X(G.crash-24);s+='<line x1="'+cx+'" y1="20" x2="'+cx+'" y2="200" stroke="var(--bad)" stroke-width="2" stroke-dasharray="4 4"/><text x="'+cx+'" y="14" text-anchor="'+(cx>560?'end':'middle')+'" font-size="12" fill="var(--bad)">crash</text>'}
+    D.forEach(function(d){s+='<circle cx="'+X(d.h)+'" cy="'+Y(at(p,M.k,24+d.h).e)+'" r="5" fill="#fff" stroke="var(--energy)" stroke-width="2"><title>'+d.n+' '+d.mg+' mg at '+ft(d.h)+'</title></circle>'})}
+  $('chart').innerHTML=s;
+  $('risk').innerHTML=M.risk.map(function(r,i){var pct=Math.round(Math.max(0,Math.min(100,r)));
+    return '<div><small>'+wd(idx+i+1)+'</small><strong>'+pct+'%</strong></div>'}).join('');
+  var tm=M.pts.filter(function(x){return x.i<=8&&x.h>=8&&x.h<=20}),dw=function(x){return isT?(x.d===0?'today':'tomorrow'):wd(idx+x.d)};
+  var best=tm.reduce(function(a,x){return x.e>a.e?x:a}),worst=tm.reduce(function(a,x){return x.e<a.e?x:a});
+  var out='<p><b>Hardest work fits best around '+fmt(best.h)+' '+dw(best)+'.</b> A crash is likely around '+fmt(worst.h)+' '+dw(worst)+' (energy will be '+lvl(worst.e)+').</p>';
+  if(M.debt>1.2){var gain=Math.round(avgTm(Object.assign({},p,{sleep:8}))-avgTm(p));
+    out+='<p>Sleep is the biggest lever: more sleep that night would lift the next day\'s average energy '+(gain<3?'slightly':gain<8?'noticeably':'a lot')+'.</p>'}
+  else out+='<p>Sleep is on track, so energy should stay steady through the day.</p>';
+  if(M.risk[0]>=40)out+='<p>Headache risk is elevated. Drink water early and keep screen breaks short and regular.</p>';
+  if(p.meet>=6)out+='<p>A long work day will drag the afternoon down. Put the hardest task in the morning peak and take a 10 minute walk between tasks.</p>';
+  out+=CS.adv;$('advice').innerHTML=out;
+  tail();
+}
+function go(i){idx=clamp(i,0,TODAY);render()}
+$('prev').addEventListener('click',function(){go(idx-1)});
+$('next').addEventListener('click',function(){go(idx+1)});
+document.addEventListener('keydown',function(e){if(e.target.tagName==='INPUT')return;if(e.key==='ArrowLeft')go(idx-1);if(e.key==='ArrowRight')go(idx+1)});
+$('week').addEventListener('click',function(e){var i=e.target.getAttribute('data-i');if(i!==null)go(+i)});
+$('week').addEventListener('keydown',function(e){var i=e.target.getAttribute('data-i');if(i!==null&&(e.key==='Enter'||e.key===' ')){e.preventDefault();go(+i)}});
+[['sleep','sleep'],['steps','steps'],['meet','meet']].forEach(function(a){$(a[0]).addEventListener('input',function(){(DAYS[idx]||DRAFT)[a[1]]=+this.value;});$(a[0]).addEventListener('change',render)});
+$('coffee').addEventListener('input',function(){(DAYS[idx]||DRAFT).coffeeTime=+this.value;});$('coffee').addEventListener('change',render);$('noCoffee').addEventListener('change',function(){(DAYS[idx]||DRAFT).coffeeNo=this.checked;render()});$('screen').addEventListener('input',function(){var v=Math.max(0,Math.min(1440,+this.value||0));(DAYS[idx]||DRAFT).screenTime=v;var h=Math.floor(v/60),m=v%60;$('vScreen').textContent=h+'h '+m+'m';});$('screen').addEventListener('change',render);
+$('reset').addEventListener('click',function(){if(DAYS[idx])DAYS[idx]=null;else DAYS[idx]={sleep:DRAFT.sleep,steps:DRAFT.steps,meet:DRAFT.meet,coffeeNo:DRAFT.coffeeNo,coffeeTime:DRAFT.coffeeTime,screenTime:DRAFT.screenTime};render()});
+$('chips').addEventListener('click',function(e){var b=e.target.closest('button');if(b)addDose(b.getAttribute('data-mg'),b.getAttribute('data-n'))});
+$('cadd').addEventListener('click',function(){addDose($('cmg').value,'Custom')});
+$('clist').addEventListener('click',function(e){var b=e.target.closest('button');if(b){cf().splice(+b.getAttribute('data-r'),1);render()}});
+$('ctime').addEventListener('input',render);
+$('age').addEventListener('input',function(){var v=parseInt(this.value,10);if(v>=12)AGE=Math.min(v,100);render()});
+render();
+setInterval(function(){var c=$('clk');if(c)c.textContent=nowStr(true);if(idx!==TODAY)return;var a=document.activeElement;if(a&&(a.tagName==='INPUT'||a.getAttribute('data-i')!==null))return;render()},1000);
+
+(function(){
+  var open=$('bgOpen'),panel=$('bgPanel'),close=$('bgClose'),file=$('bgFile'),media=$('bgMedia'),clear=$('bgClear');
+  var currentUrl=null;
+  function show(){panel.hidden=false;file.focus()}
+  function hide(){panel.hidden=true;open.focus()}
+  open.addEventListener('click',show);close.addEventListener('click',hide);
+  panel.addEventListener('click',function(e){if(e.target===panel)hide()});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!panel.hidden)hide()});
+  file.addEventListener('change',function(){
+    var f=this.files&&this.files[0]; if(!f)return;
+    if(!['image/png','image/jpeg','image/jpg','video/mp4'].includes(f.type)){alert('Please choose a PNG image or MP4 video.');this.value='';return}
+    if(currentUrl)URL.revokeObjectURL(currentUrl);
+    currentUrl=URL.createObjectURL(f); media.innerHTML='';
+    if(f.type==='image/png'||f.type==='image/jpeg'||f.type==='image/jpg'){var img=document.createElement('img');img.src=currentUrl;img.alt='Uploaded background';media.appendChild(img)}
+    else{var v=document.createElement('video');v.src=currentUrl;v.autoplay=true;v.loop=true;v.muted=true;v.playsInline=true;media.appendChild(v);v.play().catch(function(){})}
+    media.style.display='block';hide();
+  });
+  clear.addEventListener('click',function(){if(currentUrl)URL.revokeObjectURL(currentUrl);currentUrl=null;media.innerHTML='';media.style.display='none';file.value='';hide()});
+})();
+</script>
+<script>
+(function(){
+var ai=$('ai'),log=$('aiLog'),inp=$('aiMsg'),hist=[],busy=false,started=false;
+function ask1(){ask('Ask me one short question that would improve my forecast.',true)}
+function open(v){ai.hidden=!v;document.body.classList.toggle('ai-open',v);$('aiOpen').setAttribute('aria-expanded',v);if(v&&!started){started=true;ask1()}}
+$('aiOpen').addEventListener('click',function(){open(ai.hidden)});
+$('aiClose').addEventListener('click',function(){open(false)});
+function add(t,who){var d=document.createElement('div');d.className='am '+who;d.textContent=t;log.appendChild(d);log.scrollTop=log.scrollHeight;return d}
+function ctx(){
+  var rec=DAYS[idx],p=rec||DRAFT,v=prevs(),M=model(p,v[0],v[1],startOf()),G=M.k.G,D=CAF[idx]||[],hrs=[],tm=[],h;
+  for(h=6;h<=22;h+=2)hrs.push(ft(h)+': '+Math.round(at(p,M.k,24+h).e));
+  for(h=8;h<=20;h++)tm.push({h:h,e:at(p,M.k,24+h).e});
+  var b=tm.reduce(function(a,x){return x.e>a.e?x:a}),w=tm.reduce(function(a,x){return x.e<a.e?x:a});
+  return {dayViewed:wd(idx)+(idx===TODAY?' (today)':''),forecastFor:dateOf(idx+1).toLocaleDateString('en',{weekday:'long'}),
+    dayIsLogged:!!rec,age:AGE,sleepHours:p.sleep,activitySteps:p.steps,workHoursNextDay:p.meet,screenMinutes:p.screenTime||0,
+    noCaffeineDay:!!p.coffeeNo,lastCaffeineTime:p.coffeeNo?null:ft((p.coffeeTime==null?720:p.coffeeTime)/60),
+    drinks:D.map(function(d){return d.n+' '+d.mg+'mg at '+ft(d.h)}),totalCaffeineMg:cafTotal(),caffeineLimitMg:limitMg(),
+    headacheRiskPercent:M.risk.map(function(r,i){return wd(idx+i+1)+': '+r}).join(', '),
+    bestWorkTime:ft(b.h),lowestEnergyTime:ft(w.h),lowestEnergy:Math.round(w.e),
+    caffeineCrashStarts:G.crash===null?'none':ft(G.crash-24),caffeinePeak:D.length?ft(G.pk.t-24):'none',
+    energyByHour:hrs.join(', '),sleepDebtHours:+M.debt.toFixed(1),idealSleepHours:sleepNeed()};
+}
+function apply(s){
+  if(!DAYS[idx])DAYS[idx]=Object.assign({},DRAFT);
+  var r=DAYS[idx];
+  if(s.sleep!=null)r.sleep=Math.round(clamp(+s.sleep||0,3,12)*2)/2;
+  if(s.steps!=null)r.steps=Math.round(clamp(+s.steps||0,0,20000)/500)*500;
+  if(s.work!=null)r.meet=Math.round(clamp(+s.work||0,0,12));
+  if(s.screenMinutes!=null)r.screenTime=Math.round(clamp(+s.screenMinutes||0,0,1440)/15)*15;
+  if(s.age!=null&&+s.age>=12){AGE=Math.min(Math.round(+s.age),100);$('age').value=AGE}
+  if(s.drink&&typeof s.drink==='object'){var d=s.drink,t=String(d.time||'08:00').split(':'),a=cf();
+    if(a.length<12){a.push({mg:clamp(Math.round(+d.mg)||0,5,600),h:clamp((+t[0]||0)+(+t[1]||0)/60,0,23.75),n:String(d.name||'Drink').slice(0,20)});a.sort(function(x,y){return x.h-y.h})}}
+  render();
+}
+async function ask(text,hidden){
+  text=String(text).trim();if(!text||busy)return;
+  if(!hidden)add(text,'me');
+  hist.push({role:'user',content:text});inp.value='';busy=true;
+  var w=add('Thinking...','ai');
+  try{
+    var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:hist.slice(-10),forecast:ctx()})});
+    var j=await r.json();if(!r.ok)throw new Error(j.error||'failed');
+    var a=j.answer,m=a.match(/\n?SET (\{.*\})\s*$/);
+    if(m){try{apply(JSON.parse(m[1]))}catch(e){}a=a.replace(m[0],'')}
+    w.textContent=a.trim()||'Done.';hist.push({role:'assistant',content:j.answer});
+  }catch(e){w.textContent='Assistant error: '+(e.message==='Failed to fetch'?'the server is not running. Start it with python server.py':e.message);hist.pop()}
+  busy=false;log.scrollTop=log.scrollHeight;
+}
+$('aiSend').addEventListener('click',function(){ask(inp.value)});
+inp.addEventListener('keydown',function(e){if(e.key==='Enter')ask(inp.value)});
+document.querySelectorAll('.aichips button').forEach(function(b){b.addEventListener('click',function(){ask(b.dataset.q)})});
+open(innerWidth>1000);
+})();
+</script>
+</body>
+</html>

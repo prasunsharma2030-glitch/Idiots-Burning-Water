@@ -8,10 +8,12 @@ HERE = Path(__file__).resolve().parent
 DATA_DIR = HERE / 'data'
 DB_FILE = DATA_DIR / 'users.json'
 SITE_DIR = HERE / 'site'
-API_KEY = 'AQ.Ab8RN6IJ1XUMGbcZGS16dWJA6QtuJdzLg3k26SYwVf9QyXDHXQ'
+API_KEY = "AQ.Ab8RN6JM5q0yoKg9SN7a52UJxU4eMBzIqhO1dAks_4EUlukybA"
 KEY = API_KEY
-MODEL = os.environ.get('GEMINI_MODEL', 'gemini-flash-latest')
-BASE = os.environ.get('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta')
+MODEL = os.environ.get('GEMINI_MODEL', 'gemini-3.8-flash')
+# Gemini's OpenAI-compatible endpoint uses Bearer authentication, which avoids
+# the AQ authorization-key problem some native generateContent requests hit.
+BASE = os.environ.get('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta/openai')
 PORT = int(os.environ.get('PORT', '3000'))
 
 SYSTEM = '''You are the assistant inside "Future Predictor", a wellness forecast app.
@@ -231,39 +233,73 @@ class Handler(BaseHTTPRequestHandler):
 
     def handle_chat(self):
         if not KEY:
-            return self.send_json(500, {'error': 'Set GEMINI_API_KEY first'})
+            return self.send_json(500, {'error': 'No Gemini API key is configured.'})
         try:
             data = self.read_json(30000)
             messages = data.get('messages') or []
             clean = []
+            forecast = json.dumps(data.get('forecast') or {}, ensure_ascii=False)[:5000]
+
+            # Put the forecast rules/data into a system message. The Gemini
+            # OpenAI-compatible endpoint expects normal OpenAI-style messages.
+            clean.append({
+                'role': 'system',
+                'content': SYSTEM + '\n\nFORECAST DATA:\n' + forecast
+            })
             for m in messages[-10:]:
-                clean.append({'role': 'model' if m.get('role') == 'assistant' else 'user', 'parts': [{'text': str(m.get('content', ''))[:300]}]})
-            if not clean or clean[0]['role'] != 'user':
+                role = 'assistant' if m.get('role') == 'assistant' else 'user'
+                clean.append({
+                    'role': role,
+                    'content': str(m.get('content', ''))[:1000]
+                })
+            if not messages or clean[-1]['role'] != 'user':
                 return self.send_json(400, {'error': 'Bad request'})
+
             payload = {
-                'systemInstruction': {'parts': [{'text': SYSTEM + '\n\nFORECAST DATA:\n' + json.dumps(data.get('forecast') or {})[:5000]}]},
-                'contents': clean,
-                'generationConfig': {'maxOutputTokens': 1000, 'temperature': 0.4}
+                'model': MODEL,
+                'messages': clean,
+                'temperature': 0.4,
+                'max_tokens': 1000,
             }
-            req = Request(BASE + '/models/' + MODEL + ':generateContent', data=json.dumps(payload).encode(), headers={'Content-Type': 'application/json', 'x-goog-api-key': KEY}, method='POST')
+            req = Request(
+                BASE.rstrip('/') + '/chat/completions',
+                data=json.dumps(payload).encode('utf-8'),
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + KEY,
+                    'x-goog-api-client': 'moodcast-python/1.0',
+                },
+                method='POST'
+            )
             try:
                 with urlopen(req, timeout=60) as r:
                     j = json.loads(r.read())
             except HTTPError as e:
                 raw = e.read().decode('utf-8', 'replace')
                 try:
-                    msg = json.loads(raw)['error']['message']
+                    err = json.loads(raw).get('error', {})
+                    msg = err.get('message') or f'Gemini returned an error (HTTP {e.code})'
                 except Exception:
                     msg = f'Gemini returned an error (HTTP {e.code})'
+                if e.code == 401:
+                    msg = ('Gemini authentication was rejected. The current build uses the '
+                           'Bearer-authenticated Gemini OpenAI-compatible endpoint. If this '
+                           'key is old, blocked, or incomplete, create a fresh Gemini API key '
+                           'and replace API_KEY in server.py.')
                 raise RuntimeError(msg)
-            parts = (((j.get('candidates') or [{}])[0].get('content') or {}).get('parts') or [])
-            answer = ''.join(p.get('text', '') for p in parts if not p.get('thought')).strip()
+
+            choices = j.get('choices') or []
+            if not choices:
+                raise RuntimeError('Gemini returned no response choices')
+            message = (choices[0].get('message') or {}).get('content', '')
+            answer = message if isinstance(message, str) else str(message)
+            answer = answer.strip()
             if not answer:
                 raise RuntimeError('Gemini returned no text')
             return self.send_json(200, {'answer': answer})
         except Exception as e:
             print('AI error:', e)
-            return self.send_json(500, {'error': 'AI request failed: ' + str(e)[:180]})
+            return self.send_json(500, {'error': 'AI request failed: ' + str(e)[:220]})
 
 
 if __name__ == '__main__':

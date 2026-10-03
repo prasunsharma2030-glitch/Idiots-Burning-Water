@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moodcast · Know how tomorrow will feel</title>
+<meta name="description" content="Forecast your energy, mood and headache risk from sleep, caffeine, activity and screen time.">
+<meta name="theme-color" content="#09161f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%94%AE%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#09161f;--ink:#fff;--mute:rgba(255,255,255,.72);--line:rgba(255,255,255,.22);--energy:#ffb454;--mood:#74c8ff;--ok:#6ee7a0;--mid:#ffd36b;--bad:#ff8a7a;--tx:0vw;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#09161f}}
+:root[data-theme="dark"]{--bg:#09161f}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font-family:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.5;background:var(--bg);min-height:100vh}
+.bg{position:fixed;top:0;bottom:0;left:-100vw;width:300vw;z-index:-1;background:linear-gradient(135deg,#101827,#172235 55%,#0b1220);transition:transform .9s cubic-bezier(.2,.8,.2,1)}
+main{max-width:920px;margin:0 auto;padding:28px 18px 48px}
+h1{font-size:clamp(2rem,6vw,3.2rem);font-weight:800;letter-spacing:-.02em;line-height:1.05;margin:0 0 8px}
+.sub{color:var(--mute);margin:0 0 20px;max-width:60ch}
+.card{position:relative;background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.05));-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);border:0;border-radius:0;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.card::before{content:"";position:absolute;inset:0;border-radius:0;background:radial-gradient(120% 55% at 12% 0%,rgba(255,255,255,.26),transparent 60%);pointer-events:none}
+.card>*{position:relative}
+.days{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px 12px;border-radius:0}
+.days .lab{flex:1;text-align:center;font-weight:600}
+.days small{display:block;font-weight:400;color:var(--mute)}
+.chart-wrap{overflow-x:auto}
+svg{width:100%;min-width:520px;height:auto;display:block}
+.legend{display:flex;gap:16px;font-size:.9rem;color:var(--mute);margin-bottom:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:0;margin-right:6px;vertical-align:middle}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+h2{font-size:1.05rem;margin:0 0 12px;font-weight:600}
+label{display:block;font-size:.92rem;margin-top:12px}
+label b{float:right;font-weight:600}
+input[type=range]{width:100%;accent-color:var(--energy)}
+.week{display:flex;align-items:flex-end;gap:6px;height:70px;margin:6px 0 4px}
+.week div{flex:1;background:var(--mood);border-radius:0;opacity:.6;cursor:pointer}
+.week div.sel{background:var(--energy);opacity:1}
+.week div.empty{opacity:.25}
+.week div.sel.empty{background:var(--energy);opacity:.55}
+.week-l{display:flex;gap:6px;font-size:.72rem;color:var(--mute)}
+.week-l span{flex:1;text-align:center}
+.risk{display:flex;gap:10px}
+.risk div{flex:1;border:0;border-radius:0;padding:10px;text-align:center;background:rgba(255,255,255,.06)}
+.risk strong{display:block;font-size:1.6rem}
+.risk small{color:var(--mute)}
+.advice{margin-top:16px}
+.advice p{margin:6px 0}
+.fine{font-size:.8rem;color:var(--mute);margin-top:18px}
+button{font:inherit;padding:8px 16px;border-radius:0;border:0;background:rgba(255,255,255,.14);color:var(--ink);cursor:pointer;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+button:disabled{opacity:.35;cursor:default}
+button.rs{margin-top:14px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--mood);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip small{color:var(--mute);margin-left:4px}
+.cafrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cafrow label{display:inline;margin:0}
+input[type=number],input[type=time]{font:inherit;color:var(--ink);background:rgba(255,255,255,.12);border:0;border-radius:0;padding:6px 10px;color-scheme:dark}
+input[type=number]{width:90px}
+.dose{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:.92rem}
+.dose button{padding:0 10px}
+#cstats{margin-top:12px}
+#cmsg{font-size:.92rem;color:var(--ink);margin-top:12px}
+#cmsg p{margin:6px 0 0}
+@media (prefers-reduced-motion:reduce){.bg{transition:none}}
+
+.bg-media{position:fixed;inset:0;z-index:-2;display:none;overflow:hidden;background:#000}.bg-media img,.bg-media video{width:100%;height:100%;object-fit:cover;display:block}.bg-open{position:fixed;right:16px;top:16px;z-index:20}.bg-panel{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:rgba(0,0,0,.55);backdrop-filter:blur(8px)}.bg-panel[hidden]{display:none}.bg-panel-inner{width:min(92vw,420px);background:rgba(20,28,42,.92);border:0;border-radius:0;padding:20px;color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.45)}.bg-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.bg-head h2{margin:0}.upload{display:block;text-align:center;padding:14px 16px;border:0;background:rgba(255,255,255,.1);border-radius:0;cursor:pointer;margin:14px 0}.upload input{display:none}.bg-panel .rs{width:100%}
+</style>
+<style>
+#coffeeSection,#noCoffeeSection,#screenSection{display:none}
+#coffeeSection b,#screenSection b{float:right}
+#noCoffeeSection input{width:auto}
+</style>
+<style>
+#ai{position:fixed;top:0;right:0;bottom:0;width:340px;z-index:15;display:flex;flex-direction:column;padding:14px;background:rgba(14,22,34,.72);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);border-left:0}
+#ai[hidden]{display:none}
+.ai-head{display:flex;justify-content:space-between;align-items:center}.ai-head h2{margin:0}
+#aiLog{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:10px 0}
+.am{padding:8px 12px;border-radius:0;max-width:92%;font-size:.92rem;border:0;background:rgba(255,255,255,.08)}
+.am.me{align-self:flex-end;background:rgba(116,200,255,.28)}
+.aichips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}.aichips button{padding:4px 10px;font-size:.8rem}
+.aisend{display:flex;gap:8px}
+#aiMsg{flex:1;min-width:0;font:inherit;color:var(--ink);background:rgba(255,255,255,.12);border:0;border-radius:0;padding:8px 14px}
+#aiMsg:focus-visible{outline:3px solid var(--mood);outline-offset:2px}
+#aiOpen{position:fixed;left:16px;top:16px;z-index:20}
+body.ai-open{padding-right:340px}
+body.ai-open .bg-open{right:356px}
+@media(max-width:1000px){body.ai-open{padding-right:0}body.ai-open .bg-open{right:16px}#ai{top:auto;width:100%;height:70vh;border-left:0;border-top:0;border-radius:0}}
+</style>
+<style>
+/* Professional polish */
+:root{--surface:rgba(255,255,255,.055);--bd:rgba(255,255,255,.12)}
+body{background:radial-gradient(900px 500px at 90% -10%,rgba(116,200,255,.14),transparent 60%),radial-gradient(700px 400px at 0 10%,rgba(255,180,84,.1),transparent 60%),#09161f}
+.bg{opacity:.0}
+header.top{position:fixed;top:0;left:0;right:0;height:56px;z-index:12;display:flex;align-items:center;padding:0 20px;background:rgba(9,22,31,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--bd)}
+.brand{font-weight:800;font-size:1.1rem;display:flex;align-items:center;gap:9px}.brand i{width:14px;height:14px;border-radius:0;background:linear-gradient(135deg,var(--energy),var(--mood))}
+main{max-width:1000px;padding-top:96px}
+h1{font-size:clamp(1.9rem,4.6vw,2.9rem);letter-spacing:-.025em}
+.card{background:var(--surface);border:0;border-radius:0;padding:22px;box-shadow:0 8px 28px rgba(0,0,0,.28);-webkit-backdrop-filter:none;backdrop-filter:none}
+.card::before{display:none}
+h2{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mute);font-weight:600;margin-bottom:14px}
+.card.advice p{font-size:1rem}
+label b{background:rgba(255,180,84,.14);color:var(--energy);border:0;padding:1px 11px;border-radius:0;font-size:.84rem;font-variant-numeric:tabular-nums}
+label{margin-top:16px}
+input[type=range]{height:6px;margin-top:10px}
+.risk div{border-radius:0;background:var(--surface)}
+button{border-radius:0;box-shadow:none;transition:background .15s}button:hover:not(:disabled){background:rgba(255,255,255,.22)}
+button.rs{background:linear-gradient(135deg,var(--energy),#ff8f5a);color:#1a1205;border:0;font-weight:600;padding:10px 20px}
+.days{border-radius:0}
+.bg-open,#aiOpen{top:10px;padding:6px 14px;font-size:.88rem;background:rgba(255,255,255,.1)}
+.bg-open{right:16px}#aiOpen{left:auto;right:150px}
+body.ai-open #aiOpen{right:496px}body.ai-open .bg-open{right:356px}
+#ai{top:56px;background:rgba(10,18,28,.94)}
+@media(max-width:1000px){body.ai-open #aiOpen,body.ai-open .bg-open{right:auto}.bg-open{right:16px}#aiOpen{right:140px}body.ai-open .bg-open{right:16px}body.ai-open #aiOpen{right:140px}#ai{top:auto}}
+@media(max-width:560px){.brand{font-size:1rem}.bg-open{font-size:0;padding:6px 10px}.bg-open::before{content:"\1F5BC\FE0F";font-size:.9rem}#aiOpen{right:64px}body.ai-open #aiOpen{right:64px}}
+.moodbar{display:flex;align-items:center;gap:18px;margin-bottom:16px;flex-wrap:wrap}
+.moodbar .me{font-size:3.6rem;line-height:1;width:84px;height:84px;display:grid;place-items:center;border-radius:0;background:rgba(255,255,255,.08);border:0}
+.moodbar .mt{flex:1;min-width:160px}.moodbar small{color:var(--mute);display:block;font-size:.8rem}
+.moodbar strong{font-size:1.7rem;letter-spacing:-.01em}.moodbar strong span{font-size:1rem;color:var(--energy);font-weight:600;margin-left:6px}
+.moodbar .mp{display:flex;gap:10px}.moodbar .mp div{text-align:center;padding:8px 14px;border-radius:0;background:var(--surface);border:0}
+.moodbar .mp span{font-size:1.7rem;display:block;line-height:1.2}
+.pulse{text-align:center;min-width:84px}.pulse small{margin-top:4px}
+.heart{font-size:2.6rem;line-height:1;display:inline-block;transform-origin:center;animation:beat var(--beat,1.2s) ease-in-out infinite;filter:drop-shadow(0 0 10px rgba(255,90,100,.55))}
+@keyframes beat{0%,100%{transform:scale(1)}14%{transform:scale(1.28)}28%{transform:scale(1)}42%{transform:scale(1.18)}70%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.heart{animation:none}}
+.chart-wrap{position:relative}.hl{position:absolute;top:8px;bottom:8px;width:1px;background:rgba(255,255,255,.6);display:none;pointer-events:none}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}.kpis:empty{display:none}
+.kpis div{background:var(--surface);border:0;border-radius:0;padding:14px 18px}
+.kpis small{display:block;color:var(--mute);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em}.kpis strong{display:block;font-size:1.9rem;line-height:1.2;letter-spacing:-.02em}.kpis span{color:var(--mute);font-size:.88rem}
+@media(max-width:560px){.kpis{grid-template-columns:1fr}}
+.hrow{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}.headline{margin:0;font-size:1.1rem;font-weight:600}
+.wi{display:flex;align-items:center;gap:14px;margin-top:10px;flex-wrap:wrap}.wi label{flex:0 0 auto}.wi input{flex:1;min-width:140px;margin:0}
+.faq{margin-top:40px}.steps3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}@media(max-width:700px){.steps3{grid-template-columns:1fr}}.steps3 p,.faq details p{color:var(--mute);margin:6px 0 0}
+.faq details{border:0;border-radius:0;padding:12px 16px;margin-top:8px;background:var(--surface)}.faq summary{cursor:pointer;font-weight:600}
+.orb{filter:drop-shadow(0 0 7px rgba(116,200,255,.55));flex:none}
+.ai-id{display:flex;align-items:center;gap:10px}.ai-id b{letter-spacing:.2em;font-size:.95rem;display:block;line-height:1.1}.ai-id small{color:var(--mute);font-size:.74rem;display:flex;align-items:center;gap:6px}
+.ai-id i.on{width:7px;height:7px;border-radius:0;background:var(--ok);box-shadow:0 0 8px var(--ok);display:inline-block}
+#aiOpen{display:inline-flex;align-items:center;gap:7px;font-weight:600;letter-spacing:.04em}
+.am.ai{display:flex;gap:8px;align-items:flex-start;background:rgba(116,200,255,.07)}.am.ai .av{margin-top:1px}
+.think{color:var(--mute);animation:blink 1.3s ease-in-out infinite}@keyframes blink{50%{opacity:.35}}
+svg.orb{min-width:0;width:22px;height:22px;display:inline-block;flex:none}
+#aiOpen svg.orb{width:18px;height:18px}.ai-id svg.orb{width:36px;height:36px}
+.card.days{background:none;border:0;box-shadow:none;padding:0;gap:clamp(10px,4vw,44px);-webkit-backdrop-filter:none;backdrop-filter:none}
+.card.days::before{display:none}
+.days .lab{position:relative;overflow:hidden;padding:28px 20px;border-radius:0;font-weight:600;font-size:1.05rem;color:#fff;font-variant-numeric:tabular-nums;background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.05)),linear-gradient(110deg,rgba(90,130,165,.3),rgba(14,48,75,.4));-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);border:0;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.days .lab::before{content:"";position:absolute;inset:0;border-radius:0;background:radial-gradient(120% 55% at 12% 0%,rgba(255,255,255,.26),transparent 60%);pointer-events:none}
+.days button{flex:none;width:110px;height:42px;padding:0;font-size:1.6rem;line-height:1;background:rgba(255,255,255,.14);border:0}
+@media(max-width:560px){.days button{width:56px}.days .lab{padding:20px 12px;font-size:.9rem}}
+
+/* ---- Liquid glass buttons (slight curve) ---- */
+button,.bg-open,#aiOpen,.days button{
+  border-radius:10px;border:0;color:var(--ink);
+  background:
+    radial-gradient(120% 90% at 18% 0%,rgba(255,255,255,.38),rgba(255,255,255,0) 55%),
+    linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.06) 60%,rgba(255,255,255,.14));
+  -webkit-backdrop-filter:blur(18px) saturate(190%) brightness(1.08);
+  backdrop-filter:blur(18px) saturate(190%) brightness(1.08);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255,255,255,.65),
+    inset 0 -2px 6px rgba(255,255,255,.14),
+    inset 0 0 14px rgba(255,255,255,.08),
+    0 6px 18px rgba(0,0,0,.28);
+  text-shadow:0 1px 2px rgba(0,0,0,.25);
+  transition:transform .18s cubic-bezier(.3,1.4,.5,1),box-shadow .18s,background .18s,filter .18s}
+button:hover:not(:disabled),.bg-open:hover,#aiOpen:hover,.days button:hover:not(:disabled){
+  background:
+    radial-gradient(120% 90% at 18% 0%,rgba(255,255,255,.52),rgba(255,255,255,0) 58%),
+    linear-gradient(160deg,rgba(255,255,255,.3),rgba(255,255,255,.1) 60%,rgba(255,255,255,.2));
+  transform:translateY(-1px);
+  box-shadow:inset 0 1.5px 1px rgba(255,255,255,.8),inset 0 -2px 8px rgba(255,255,255,.2),inset 0 0 18px rgba(255,255,255,.12),0 10px 24px rgba(0,0,0,.32)}
+button:active:not(:disabled),.bg-open:active,#aiOpen:active{
+  transform:translateY(1px) scale(.98);
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.25),inset 0 1px 1px rgba(255,255,255,.4),0 2px 8px rgba(0,0,0,.25)}
+button:disabled{filter:saturate(.6)}
+/* accent button: tinted glass */
+button.rs{
+  color:#fff;font-weight:600;border:0;border-radius:10px;
+  text-shadow:0 1px 3px rgba(120,40,0,.45);
+  background:
+    radial-gradient(120% 90% at 18% 0%,rgba(255,255,255,.55),rgba(255,255,255,0) 55%),
+    linear-gradient(160deg,rgba(255,180,84,.62),rgba(255,143,90,.5));
+  box-shadow:
+    inset 0 1.5px 1px rgba(255,255,255,.75),
+    inset 0 -2px 8px rgba(255,200,140,.3),
+    0 8px 22px rgba(255,143,90,.3)}
+button.rs:hover:not(:disabled){
+  background:
+    radial-gradient(120% 90% at 18% 0%,rgba(255,255,255,.7),rgba(255,255,255,0) 58%),
+    linear-gradient(160deg,rgba(255,190,100,.75),rgba(255,150,100,.62))}
+.days button{border-radius:12px}
+@media(prefers-reduced-motion:reduce){button,.bg-open,#aiOpen{transition:none}}
+
+/* ---- selective rounded corners on cards ---- */
+.card.r-top{border-top-left-radius:24px;border-top-right-radius:24px}
+.card.r-bl{border-bottom-left-radius:24px}
+.card.r-br{border-bottom-right-radius:24px}
+
+/* ---- Left sidebar (fixed, never scrolls) ---- */
+:root{--sw:252px}
+body{padding-left:var(--sw)}
+#side{position:fixed;top:0;left:0;bottom:0;width:var(--sw);z-index:25;display:flex;flex-direction:column;gap:18px;padding:20px 14px;overflow:hidden;overscroll-behavior:none;background:rgba(10,18,28,.8);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);box-shadow:6px 0 30px rgba(0,0,0,.3)}
+.s-brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.15rem;padding:0 6px 6px;white-space:nowrap}
+.s-brand i{width:16px;height:16px;flex:none;background:linear-gradient(135deg,var(--energy),var(--mood))}
+.s-nav{display:flex;flex-direction:column;gap:10px}
+.s-foot{margin-top:auto}
+.s-btn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 14px;font-weight:600;white-space:nowrap;overflow:hidden}
+.s-btn .s-tx{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.s-ic{font-size:1.25rem;line-height:1;width:22px;text-align:center;flex:none}
+.s-btn svg.orb{width:22px;height:22px;flex:none}
+.s-btn small{display:block;font-weight:400;font-size:.72rem;color:var(--mute);text-shadow:none}
+.s-btn b{display:block;font-weight:600;line-height:1.2}
+.s-av{width:30px;height:30px;flex:none;display:grid;place-items:center;font-size:1rem;font-weight:700;background:linear-gradient(135deg,var(--energy),var(--mood));color:#10202c;text-shadow:none}
+.s-btn[aria-expanded="true"]{background:radial-gradient(120% 90% at 18% 0%,rgba(255,255,255,.4),rgba(255,255,255,0) 55%),linear-gradient(160deg,rgba(116,200,255,.45),rgba(116,200,255,.18))}
+main{padding-top:40px}
+#ai{top:0;z-index:20}
+@media(max-width:1000px){#ai{top:auto;left:var(--sw);width:auto}}
+@media(max-width:800px){
+  :root{--sw:68px}
+  #side{padding:16px 10px;align-items:center}
+  .s-nav,.s-foot{width:100%}
+  .s-brand{padding:0;justify-content:center}.s-brand .s-tx{display:none}
+  .s-btn{justify-content:center;padding:12px 0}.s-btn .s-tx{display:none}
+}
+/* ---- Graphics + account modals ---- */
+.bg-panel-inner{max-height:92vh;overflow-y:auto}
+.g-h{margin:18px 0 10px;font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--mute);font-weight:600}
+.g-l{display:block;font-size:.82rem;color:var(--mute);margin:10px 0 4px}
+.cw{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+.wheel-wrap{position:relative;width:170px;height:170px;flex:none;touch-action:none;cursor:crosshair;border-radius:50%;outline-offset:4px}
+.wheel-wrap canvas{display:block;border-radius:50%;box-shadow:0 6px 20px rgba(0,0,0,.4)}
+#wthumb{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1.5px rgba(0,0,0,.55),0 2px 8px rgba(0,0,0,.5);pointer-events:none;left:85px;top:85px;background:transparent}
+.cw-side{flex:1;min-width:130px}
+#cswatch{height:44px;background:#101827;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.cw-side input[type=range]{margin-top:6px}
+#chex,#accUser,#accPass{width:100%;font:inherit;color:var(--ink);background:rgba(255,255,255,.12);border:0;border-radius:0;padding:8px 12px}
+#chex:focus-visible,#accUser:focus-visible,#accPass:focus-visible{outline:3px solid var(--mood);outline-offset:2px}
+.tabs{display:flex;gap:8px;margin:14px 0 4px}.tabs button{flex:1}
+.tabs button[aria-selected="true"]{background:radial-gradient(120% 90% at 18% 0%,rgba(255,255,255,.4),rgba(255,255,255,0) 55%),linear-gradient(160deg,rgba(116,200,255,.5),rgba(116,200,255,.2))}
+.acc-err{color:var(--bad);font-size:.9rem;margin:10px 0 0}
+#accForm .rs{width:100%;margin-top:14px}#accIn .rs{width:100%}
+.bg-panel .rs{width:100%}
+
+/* ---- Sidebar: square liquid-glass buttons + tint that differs from the main area ---- */
+#side{background:linear-gradient(180deg,rgba(40,66,96,.62),rgba(24,42,66,.7));
+  box-shadow:inset -1px 0 0 rgba(255,255,255,.07),8px 0 32px rgba(0,0,0,.35)}
+.s-btn{position:relative;border-radius:0;
+  background:
+    linear-gradient(115deg,rgba(255,255,255,.34) 0%,rgba(255,255,255,.08) 38%,rgba(255,255,255,0) 52%,rgba(255,255,255,.12) 100%),
+    radial-gradient(130% 100% at 10% 0%,rgba(255,255,255,.4),rgba(255,255,255,0) 55%),
+    linear-gradient(160deg,rgba(255,255,255,.2),rgba(255,255,255,.05));
+  -webkit-backdrop-filter:blur(22px) saturate(200%) brightness(1.1);backdrop-filter:blur(22px) saturate(200%) brightness(1.1);
+  box-shadow:inset 0 1.5px 1px rgba(255,255,255,.75),inset 0 -3px 8px rgba(255,255,255,.16),inset 0 0 18px rgba(255,255,255,.1),0 8px 22px rgba(0,0,0,.32)}
+.s-btn:hover:not(:disabled){
+  background:
+    linear-gradient(115deg,rgba(255,255,255,.46) 0%,rgba(255,255,255,.12) 38%,rgba(255,255,255,0) 52%,rgba(255,255,255,.18) 100%),
+    radial-gradient(130% 100% at 10% 0%,rgba(255,255,255,.55),rgba(255,255,255,0) 58%),
+    linear-gradient(160deg,rgba(255,255,255,.28),rgba(255,255,255,.08))}
+.s-btn[aria-expanded="true"]{border-radius:0}
+
+/* ---- Plain (flat) sidebar buttons: Graphics settings + Nova AI ---- */
+#sbGfx,#sbAi{border-radius:0;background:rgba(255,255,255,.07);box-shadow:none;text-shadow:none;
+  -webkit-backdrop-filter:none;backdrop-filter:none;transform:none;transition:background .15s}
+#sbGfx:hover:not(:disabled),#sbAi:hover:not(:disabled){background:rgba(255,255,255,.14);box-shadow:none;transform:none}
+#sbGfx:active:not(:disabled),#sbAi:active:not(:disabled){background:rgba(255,255,255,.2);box-shadow:none;transform:none}
+#sbAi[aria-expanded="true"]{background:rgba(116,200,255,.22);box-shadow:none}
+</style>
+<style>
+.condgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
+.condgrid label{margin:0;display:flex;gap:8px;align-items:center;font-size:.9rem}
+#wmsg{font-size:.92rem}
+</style>
+
+<style id="moodcast-1-visual-overrides">
+/* Main visual language from build (1): rounded liquid-glass cards, controls and panels.
+   Build (3)'s sidebar/account layout remains intact. */
+body{background:var(--bg)}
+.bg{background:linear-gradient(135deg,#101827,#172235 55%,#0b1220)}
+.card{
+  position:relative;
+  background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.05));
+  -webkit-backdrop-filter:blur(22px) saturate(170%);
+  backdrop-filter:blur(22px) saturate(170%);
+  border:1px solid rgba(255,255,255,.3);
+  border-radius:28px;
+  padding:20px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(255,255,255,.12),0 12px 40px rgba(0,0,0,.35);
+}
+.card::before{
+  border-radius:inherit;
+  background:radial-gradient(120% 55% at 12% 0%,rgba(255,255,255,.26),transparent 60%);
+}
+.card.r-top{border-top-left-radius:28px;border-top-right-radius:28px}
+.card.r-bl{border-bottom-left-radius:28px}
+.card.r-br{border-bottom-right-radius:28px}
+.card.days{
+  background:linear-gradient(135deg,rgba(255,255,255,.2),rgba(255,255,255,.05));
+  border:1px solid rgba(255,255,255,.3);
+  border-radius:28px;
+  padding:10px 12px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 12px 40px rgba(0,0,0,.35);
+  -webkit-backdrop-filter:blur(22px) saturate(170%);
+  backdrop-filter:blur(22px) saturate(170%);
+}
+.card.days::before{display:block}
+.days .lab{
+  padding:10px 12px;
+  border-radius:999px;
+  background:transparent;
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
+.days button,button,.bg-open,#aiOpen{
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.14);
+  color:var(--ink);
+  -webkit-backdrop-filter:blur(10px);
+  backdrop-filter:blur(10px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
+}
+.days button{width:auto;height:auto;padding:8px 16px;font-size:inherit}
+button:hover:not(:disabled),.bg-open:hover,#aiOpen:hover{
+  background:rgba(255,255,255,.2);
+  transform:translateY(-1px);
+}
+button.rs{
+  border-radius:999px;
+  background:rgba(255,255,255,.14);
+  color:var(--ink);
+  text-shadow:none;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
+}
+.risk div{
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:rgba(255,255,255,.06);
+}
+.week div{border-radius:6px 6px 0 0}
+input[type=number],input[type=time],#chex,#accUser,#accPass,#aiMsg{
+  background:rgba(255,255,255,.12);
+  border:1px solid var(--line);
+  border-radius:12px;
+}
+.bg-panel-inner{
+  background:rgba(20,28,42,.92);
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:24px;
+  box-shadow:0 20px 60px rgba(0,0,0,.45);
+}
+.upload{border:1px dashed rgba(255,255,255,.4);border-radius:16px;background:transparent}
+@media(max-width:560px){.days button{width:56px}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="og" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb454"/><stop offset="1" stop-color="#74c8ff"/></linearGradient></defs><symbol id="orb" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="none" stroke="url(#og)" stroke-width="2" stroke-dasharray="4 5" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 24 24" to="360 24 24" dur="16s" repeatCount="indefinite"/></circle><circle cx="24" cy="24" r="14" fill="none" stroke="url(#og)" stroke-width="2.5" stroke-dasharray="52 36" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="360 24 24" to="0 24 24" dur="9s" repeatCount="indefinite"/></circle><circle cx="24" cy="24" r="9.5" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1"/><circle cx="24" cy="24" r="6" fill="url(#og)"/></symbol></svg>
+<div class="bg" id="bg"></div>
+<div class="bg-media" id="bgMedia" aria-hidden="true"></div>
+<nav id="side" aria-label="Sidebar">
+  <div class="s-brand"><i></i><span class="s-tx">Moodcast</span></div>
+  <div class="s-nav">
+    <button id="sbGfx" class="s-btn" type="button" aria-haspopup="dialog"><span class="s-ic" aria-hidden="true">🎨</span><span class="s-tx">Graphics settings</span></button>
+    <button id="sbAi" class="s-btn" type="button" aria-expanded="false"><svg class="orb" width="22" height="22" aria-hidden="true"><use href="#orb"/></svg><span class="s-tx">Nova AI</span></button>
+  </div>
+  <div class="s-foot">
+    <button id="sbAcc" class="s-btn" type="button" aria-haspopup="dialog"><span class="s-av" id="accAv" aria-hidden="true">👤</span><span class="s-tx"><b id="accName">Account</b><small id="accSub">Log in or sign up</small></span></button>
+  </div>
+</nav>
+<div class="bg-panel" id="bgPanel" hidden>
+  <div class="bg-panel-inner" role="dialog" aria-modal="true" aria-labelledby="bgTitle">
+    <div class="bg-head"><h2 id="bgTitle">Graphics settings</h2><button id="bgClose" type="button" aria-label="Close graphics settings">✕</button></div>
+    <h3 class="g-h">Background color</h3>
+    <div class="cw">
+      <div class="wheel-wrap" id="wheelWrap" tabindex="0" role="group" aria-label="Color wheel. Arrow left and right change hue, up and down change saturation.">
+        <canvas id="wheel" aria-hidden="true"></canvas><div id="wthumb"></div>
+      </div>
+      <div class="cw-side">
+        <div id="cswatch" aria-hidden="true"></div>
+        <label for="chex" class="g-l">Hex color</label>
+        <input id="chex" type="text" maxlength="7" spellcheck="false" autocomplete="off" placeholder="#101827">
+        <label for="cval" class="g-l">Brightness</label>
+        <input id="cval" type="range" min="0" max="100" value="100">
+      </div>
+    </div>
+    <h3 class="g-h">Insert picture</h3>
+    <label class="upload">Choose PNG / JPEG / MP4<input id="bgFile" type="file" accept="image/png,image/jpeg,image/jpg,video/mp4"></label>
+    <p class="fine" style="margin:0 0 12px">Picking a color replaces any picture. Pictures up to 2 MB are remembered on this device.</p>
+    <button id="bgClear" type="button" class="rs">Reset background</button>
+  </div>
+</div>
+<div class="bg-panel" id="accPanel" hidden>
+  <div class="bg-panel-inner" role="dialog" aria-modal="true" aria-labelledby="accTitle">
+    <div class="bg-head"><h2 id="accTitle">Account</h2><button id="accClose" type="button" aria-label="Close account">✕</button></div>
+    <div id="accOut">
+      <div class="tabs" role="tablist"><button type="button" id="tabLogin" role="tab" aria-selected="true">Log in</button><button type="button" id="tabSignup" role="tab" aria-selected="false">Sign up</button></div>
+      <form id="accForm" novalidate>
+        <label for="accUser" class="g-l">Username</label>
+        <input id="accUser" type="text" autocomplete="username" maxlength="24" autocapitalize="none" spellcheck="false">
+        <label for="accPass" class="g-l">Password</label>
+        <input id="accPass" type="password" autocomplete="current-password" maxlength="128">
+        <p class="fine" id="accHint" style="margin:6px 0 0" hidden>3 to 24 letters, numbers, dots, dashes or underscores. Password: 8 characters or more.</p>
+        <p id="accErr" role="alert" class="acc-err" hidden></p>
+        <button type="submit" class="rs" id="accGo">Log in</button>
+      </form>
+    </div>
+    <div id="accIn" hidden>
+      <p style="margin:0 0 6px">Signed in as <b id="accWho"></b></p>
+      <p class="fine" style="margin:0 0 14px">Your forecast data and background color are saved to your account and load on any device you log in from.</p>
+      <button type="button" id="accLogout" class="rs">Log out</button>
+    </div>
+  </div>
+</div>
+<aside id="ai" aria-label="Forecast assistant" hidden>
+  <div class="ai-head"><div class="ai-id"><svg class="orb" width="36" height="36" aria-hidden="true"><use href="#orb"/></svg><div><b>NOVA</b><small><i class="on"></i>Online · forecast assistant</small></div></div><button id="aiClose" type="button" aria-label="Close assistant">✕</button></div>
+  <p class="fine" style="margin:4px 0 0">Answers only about your forecast. Tell it a value (like "I slept 5 hours") and it updates the page.</p>
+  <div id="aiLog" aria-live="polite"></div>
+  <div class="aichips">
+    <button type="button" data-q="Ask me one short question that would improve my forecast.">Ask me a question</button>
+    <button type="button" data-q="When will I crash and what can I do about it?">When will I crash?</button>
+    <button type="button" data-q="What is the single best change I can make today?">Best change?</button>
+  </div>
+  <div class="aisend"><input id="aiMsg" type="text" maxlength="300" placeholder="Ask Nova about your forecast" aria-label="Your question"><button id="aiSend" type="button">Send</button></div>
+</aside>
+<main>
+<h1>Know how Friday will feel before Friday.</h1>
+<p class="sub">Moodcast forecasts your energy, mood and headache risk for the next few days from your age, sleep, activity, caffeine, screen time and work schedule. Add your age and any coffee or energy drinks to see your energy curve and when you will crash. Start by logging tonight, then step back to fill in earlier days.</p>
+
+<div class="hrow"><p class="headline" id="headline"></p><button id="demo" type="button">Load demo data</button></div>
+
+<section class="card moodbar" aria-live="polite"><div class="me" id="moodE" aria-hidden="true">&#128302;</div><div class="mt"><small id="moodD">Mood forecast</small><strong id="moodT">Log a day to see your mood forecast</strong></div><div class="mp" id="moodP"></div><div class="pulse" title="The faster the heart beats, the higher your forecast energy"><div class="heart" id="heart" role="img" aria-label="Beating heart that speeds up with higher energy">&#10084;&#65039;</div><small id="heartT">Energy pulse</small></div></section>
+
+<div class="card days" role="group" aria-label="Choose a day">
+<button id="prev" type="button" aria-label="Earlier day">&lsaquo;</button>
+<div class="lab" id="dayLab" aria-live="polite"></div>
+<button id="next" type="button" aria-label="Later day">&rsaquo;</button>
+</div>
+
+<div class="kpis" id="kpis"></div>
+
+<section class="card r-top" aria-label="Forecast">
+<div class="legend"><span><i style="background:var(--energy)"></i>Energy</span><span><i style="background:var(--mood)"></i>Mood</span><span id="cafLeg"></span><span id="cap"></span><span id="hov" style="margin-left:auto;color:var(--ink);font-variant-numeric:tabular-nums"></span></div>
+<div class="chart-wrap"><svg id="chart" viewBox="0 0 640 240" role="img" aria-label="Forecast chart of energy and mood for 72 hours"></svg></div>
+<div class="wi"><label for="wi" style="margin:0">What if I sleep <b id="vWi">—</b></label><input id="wi" type="range" min="3" max="12" step="0.5" value="8"><button id="wiOff" type="button">Clear</button></div>
+</section>
+
+<section class="card advice" aria-live="polite">
+<h2>Your forecast</h2>
+<div id="advice"></div>
+</section>
+
+<div class="grid">
+<section class="card">
+<h2>About you</h2>
+<label for="age" style="margin-top:0">Your age <b id="vAge">30 years</b></label>
+<input id="age" type="range" min="12" max="100" step="1" value="30">
+<p class="fine" id="ageNote"></p>
+</section>
+<section class="card">
+<h2 id="cafT">Caffeine</h2>
+<label for="ctime" style="margin-top:0">Time of day <span class="fine" style="margin:0">(also shows your energy at that time)</span></label>
+<input id="ctime" type="time" value="08:00">
+<div class="chips" id="chips">
+<button type="button" class="chip" data-mg="95" data-n="Coffee">&#9749; Coffee <small>95</small></button>
+<button type="button" class="chip" data-mg="64" data-n="Espresso">Espresso <small>64</small></button>
+<button type="button" class="chip" data-mg="47" data-n="Tea">Tea <small>47</small></button>
+<button type="button" class="chip" data-mg="34" data-n="Cola">Cola <small>34</small></button>
+<button type="button" class="chip" data-mg="160" data-n="Energy drink">Energy drink <small>160</small></button>
+</div>
+<div class="cafrow"><label for="cmg">Custom mg</label><input id="cmg" type="number" min="5" max="600" step="5" value="100"><button id="cadd" type="button">Add</button></div>
+<div id="clist"></div>
+<div class="risk" id="cstats"></div>
+<div id="cmsg"></div>
+</section>
+</div>
+
+<div class="grid">
+<section class="card">
+<h2>Health conditions</h2>
+<p class="fine" style="margin-top:0">Tick any that apply. These are rough, illustrative nudges to your curve, not measurements, and people with the same condition vary a lot.</p>
+<div class="condgrid" id="condList"></div>
+<label>Strength <b id="vStr"></b><input id="pstr" type="range" min="0.5" max="1.5" step="0.25" value="1"></label>
+<label style="margin-top:12px"><input type="checkbox" id="med"> I take stimulant medication</label>
+<div class="cafrow" id="medRow" style="display:none;margin-top:6px"><label for="medT">Taken at</label><input id="medT" type="time" value="08:00"><label for="medD">lasts</label><input id="medD" type="number" min="2" max="14" value="8"><span class="fine" style="margin:0">hours</span></div>
+</section>
+<section class="card">
+<h2 id="waterT">Water</h2>
+<label for="wtime" style="margin-top:0">Time of day</label>
+<input id="wtime" type="time" value="08:00">
+<div class="chips" id="wchips">
+<button type="button" class="chip" data-ml="150">Small glass <small>150 ml</small></button>
+<button type="button" class="chip" data-ml="250">Glass <small>250 ml</small></button>
+<button type="button" class="chip" data-ml="500">Bottle <small>500 ml</small></button>
+<button type="button" class="chip" data-ml="750">Large bottle <small>750 ml</small></button>
+</div>
+<div class="cafrow"><label for="wml">Custom ml</label><input id="wml" type="number" min="50" max="2000" step="50" value="300"><button id="wadd" type="button">Add</button></div>
+<div id="wlist"></div>
+<div class="risk" id="wstats" style="margin-top:12px"></div>
+<div id="wmsg" style="margin-top:12px"></div>
+<p class="fine">The guide is a rough general amount. If a doctor limits your fluids, follow their advice instead.</p>
+</section>
+</div>
+
+<div class="grid">
+<section class="card r-bl">
+<h2 id="planT">Change this day</h2>
+<label><span id="lSleep">Sleep</span> <b id="vSleep"></b><input id="sleep" type="range" min="3" max="12" step="0.5" value="6"></label>
+<label>Activity that day <b id="vSteps"></b><input id="steps" type="range" min="0" max="20000" step="500" value="4000"></label>
+<label>Work load the next day <b id="vMeet"></b><input id="meet" type="range" min="0" max="12" step="1" value="6"></label>
+<label id="coffeeSection"><span>☕ Last caffeinated drink today (affects tonight's sleep)</span> <b id="vCoffee">12:00 PM</b><input id="coffee" type="range" min="0" max="1439" step="15" value="720"></label>
+<label id="noCoffeeSection"><input id="noCoffee" type="checkbox"> No caffeine day</label>
+<label id="screenSection"><span>🖥️ Screen time that day</span> <b id="vScreen">0h 0m</b><input id="screen" type="range" min="0" max="1440" step="15" value="0"></label>
+<button class="rs" id="reset" type="button">Reset this day</button>
+</section>
+
+<section class="card r-br">
+<h2>Headache risk</h2>
+<div class="risk" id="risk"></div>
+<h2 style="margin-top:18px">Sleep by night (tap to open a day)</h2>
+<div class="week" id="week"></div>
+<div class="week-l" id="weekl"></div>
+</section>
+</div>
+
+<section id="faq" class="faq"><h2>How it works</h2><div class="steps3"><div class="card"><b>1. Log</b><p>Sleep, steps, work hours, screens and drinks.</p></div><div class="card"><b>2. Forecast</b><p>A body-clock curve plus sleep debt and caffeine kinetics.</p></div><div class="card"><b>3. Plan</b><p>Schedule hard work at your peak and skip the late coffee.</p></div></div>
+<h2 style="margin-top:28px">FAQ</h2>
+<details><summary>Is my data stored?</summary><p>Only in your browser, and it resets each day. Forecast numbers and your assistant questions go to the AI service through your own server.</p></details>
+<details><summary>How accurate is it?</summary><p>It uses population averages, so treat it as a planning guide. Individual responses vary.</p></details>
+<details><summary>Is this medical advice?</summary><p>No. For medication or health concerns, talk to a doctor or pharmacist.</p></details>
+<details><summary>What does "What if" do?</summary><p>It draws a green dotted line showing how tomorrow would change if you slept a different amount.</p></details></section>
+<p class="fine">Wellness forecasting, not medical advice. Age and caffeine effects use population averages, so real responses vary. Nights you haven't logged are treated as typical sleep. Your forecast numbers and the questions you ask the assistant are sent to the AI service through your own server.</p>
+</main>
+
+<script>
+var DAYS=[null,null,null,null,null,null,null,null], DRAFT={sleep:7,steps:5000,meet:6,coffeeNo:false,coffeeTime:720,screenTime:0};
+var TODAY=DAYS.length-1, idx=TODAY, STEP=14;
+var $=function(id){return document.getElementById(id)};
+var AGE=30, CAF={}, WI=null, LT=null, LS='';
+function streak(){var n=0;for(var i=TODAY;i>=0&&DAYS[i];i--)n++;return n}
+function persist(){try{var j=JSON.stringify({d:new Date().toDateString(),D:DAYS,C:CAF,A:AGE,P:PAT,W:WATER});if(j!==LS){LS=j;localStorage.setItem('fp1',j)}}catch(e){}}
+function restore(){try{var o=JSON.parse(localStorage.getItem('fp1')||'null');if(o&&o.d===new Date().toDateString()&&o.D&&o.D.length===DAYS.length){DAYS=o.D;CAF=o.C||{};AGE=clamp(+o.A||30,12,100);$('age').value=AGE;if(o.P&&typeof o.P==='object'){PAT=o.P;PAT.on=PAT.on||{}}if(o.W&&typeof o.W==='object')WATER=o.W}}catch(e){}}
+
+/* Illustrative condition presets. NOT measurements: small nudges to baseline energy (base), energy peak timing in hours (sh),
+   size of swings (amp), a 4 h wobble (wob), how hard missed sleep hits (sens) and headache risk points (risk). People vary a lot. */
+var COND={
+ adhd:{n:'ADHD',sh:1.2,amp:.25,wob:5},
+ autism:{n:'Autism',sh:.5,amp:.1,sens:.2},
+ down_syndrome:{n:'Down syndrome',base:-4,sens:.15},
+ anxiety:{n:'Anxiety',sens:.15,risk:3},
+ depression:{n:'Depression',base:-6,sh:.5,sens:.1},
+ migraine:{n:'Migraine',risk:8,sens:.1},
+ diabetes:{n:'Diabetes',amp:.2,wob:3},
+ anemia:{n:'Anemia',base:-7},
+ hypothyroidism:{n:'Underactive thyroid',base:-6,sh:.5},
+ sleep_apnea:{n:'Sleep apnea',base:-3,sens:.3},
+ chronic_fatigue:{n:'Chronic fatigue',base:-8,sens:.3},
+ insomnia:{n:'Insomnia',sens:.25,sh:.7}
+};
+var PAT={on:{},str:1,med:false,medH:8,medDur:8}, WATER={};
+function pv(k){var t=0;for(var c in PAT.on)if(PAT.on[c]&&COND[c])t+=(COND[c][k]||0);return t*PAT.str}
+function patNames(){var n=Object.keys(PAT.on).filter(function(c){return PAT.on[c]&&COND[c]}).map(function(c){return COND[c].n});if(PAT.med)n.push('stimulant medication');return n}
+function anyPat(){return patNames().length>0}
+function patE(h){
+  var b=circ(h),am=pv('amp'),wb=pv('wob');
+  if(am)b=50+(b-50)*(1+am);
+  if(wb)b+=wb*Math.sin((h-9)*Math.PI/2);
+  b+=pv('base');
+  if(PAT.med){var t=((h-PAT.medH)%24+24)%24,D=PAT.medDur;
+    b+=t<1?10*t:t<D-2?10:t<D?10*(D-t)/2:t<D+2.5?-6*(1-(t-D)/2.5):0}
+  return b}
+function hhmm(h){var H=Math.floor(h),M=Math.round((h-H)*60);if(M===60){H=(H+1)%24;M=0}return (H<10?'0':'')+H+':'+(M<10?'0':'')+M}
+function patUI(){
+  Array.prototype.forEach.call(document.querySelectorAll('#condList input'),function(el){el.checked=!!PAT.on[el.getAttribute('data-c')]});
+  $('pstr').value=PAT.str;$('vStr').textContent=PAT.str<.9?'Mild':PAT.str<=1.1?'Typical':'Strong';
+  $('med').checked=PAT.med;$('medT').value=hhmm(PAT.medH);$('medD').value=PAT.medDur;$('medRow').style.display=PAT.med?'flex':'none'}
+$('condList').innerHTML=Object.keys(COND).map(function(c){return '<label><input type="checkbox" data-c="'+c+'"> '+COND[c].n+'</label>'}).join('');
+$('condList').addEventListener('change',function(e){var c=e.target.getAttribute('data-c');if(c){PAT.on[c]=e.target.checked;render()}});
+$('pstr').addEventListener('change',function(){PAT.str=+this.value||1;render()});
+$('med').addEventListener('change',function(){PAT.med=this.checked;render()});
+$('medT').addEventListener('change',function(){var q=(this.value||'08:00').split(':');PAT.medH=(+q[0])+(+q[1]||0)/60;render()});
+$('medD').addEventListener('change',function(){PAT.medDur=clamp(+this.value||8,2,14);render()});
+/* Water: expected intake builds from 7am to 10pm toward a rough daily guide. Falling behind lowers energy and raises headache risk. */
+function waterGoal(){return AGE<18?1800:2000}
+function wf(){return WATER[idx]||(WATER[idx]=[])}
+function waterTotal(){return (WATER[idx]||[]).reduce(function(a,d){return a+d.ml},0)}
+function wdef(h){var D=WATER[idx]||[];if(!D.length)return 0;var G=waterGoal(),need=G*clamp((h-7)/15,0,1),got=D.reduce(function(a,d){return a+(d.h<=h?d.ml:0)},0);return clamp((need-got)/(.5*G),0,1)}
+function addWater(ml){ml=clamp(Math.round(+ml)||0,50,2000);var t=($('wtime').value||'08:00').split(':'),a=wf();if(a.length>=24)return;a.push({ml:ml,h:(+t[0])+(+t[1]||0)/60,n:'Water'});a.sort(function(x,y){return x.h-y.h});render()}
+function waterUI(){
+  var D=WATER[idx]||[],tot=waterTotal(),G=waterGoal();
+  $('waterT').textContent='Water on '+dateOf(idx+1).toLocaleDateString('en',{weekday:'long',day:'numeric',month:'short'});
+  setH('wlist',D.map(function(d,i){return '<div class="dose"><span>'+ft(d.h)+' \u00b7 '+d.ml+' ml</span><button type="button" data-r="'+i+'" aria-label="Remove '+d.ml+' ml at '+ft(d.h)+'">\u00d7</button></div>'}).join(''));
+  if(!D.length){setH('wstats','');setH('wmsg','Tap a size above to log water at that time. Log everything you drink for that day so the forecast is accurate.');return}
+  var worst=8,wv=0;for(var h=8;h<=22;h++){var v=wdef(h);if(v>wv){wv=v;worst=h}}
+  setH('wstats','<div><small>Total</small><strong>'+tot+' ml</strong><small>guide '+G+'</small></div><div><small>Lowest hydration</small><strong style="color:'+(wv>.5?'var(--bad)':'inherit')+'">'+(wv>.05?fmt(worst):'\u2014')+'</strong><small>'+(wv>.05?Math.round(wv*8)+' energy pts':'on track')+'</small></div>');
+  setH('wmsg',tot>=G?'You reached the rough guide, so hydration should not hold your energy back.':'You are about '+(G-tot)+' ml short of a rough '+G+' ml guide'+(wv>.05?'. Hydration dips most near '+ft(worst)+', which lowers energy and raises headache risk.':'.'))}
+$('wchips').addEventListener('click',function(e){var b=e.target.closest('button');if(b)addWater(b.getAttribute('data-ml'))});
+$('wadd').addEventListener('click',function(){addWater($('wml').value)});
+$('wlist').addEventListener('click',function(e){var b=e.target.closest('button');if(b){wf().splice(+b.getAttribute('data-r'),1);render()}});
+$('wtime').addEventListener('input',render);
+function sleepNeed(){return AGE<18?9:AGE<26?8:AGE<65?7.5:7}
+function shift(){return clamp((38-AGE)/15,-1.2,1.7)+pv('sh')}
+function sens(){return clamp(1+(AGE-35)/120,.85,1.4)*(1+pv('sens'))}
+function ageE(){return clamp((40-AGE)*.1,-4,3)}
+function halfLife(){return AGE<18?4.2:4.8+clamp((AGE-30)/25,0,2)}
+function cafScale(){return AGE<18?1.25:AGE>=60?1.1:1}
+function limitMg(){return AGE<18?100:400}
+function ft(h){h=((h%24)+24)%24;var H=Math.floor(h),M=Math.round((h-H)*60);if(M===60){H=(H+1)%24;M=0}return (H%12||12)+(M?':'+(M<10?'0':'')+M:'')+(H>=12?'pm':'am')}
+function setH(id,h){var e=$(id);if(e._h!==h){e.innerHTML=h;e._h=h}}
+function cf(){return CAF[idx]||(CAF[idx]=[])}
+function cafTotal(){return (CAF[idx]||[]).reduce(function(a,d){return a+d.mg},0)}
+function cfAt(G,t){return G?G.C[clamp(Math.round(t*4),0,384)]:0}
+/* Caffeine: one-compartment absorption/clearance (half-life depends on age). Boost saturates with dose.
+   Blocked adenosine builds up while caffeine is active and is paid back as it wears off (the crash). */
+function cafGrid(D){
+  var ka=4,ke=Math.LN2/halfLife(),sc=cafScale(),A=[],E=[],C=[],a=0,m=0,tm=0,i,t;
+  for(i=0;i<385;i++){t=i/4;var x=0;
+    D.forEach(function(d){var u=t-24-d.h;if(u>0)x+=d.mg*ka/(ka-ke)*(Math.exp(-ke*u)-Math.exp(-ka*u))});
+    var e=24*(1-Math.exp(-x*sc/110));
+    a+=(.25*e-a/8)*.25;
+    if(e>m){m=e;tm=t}
+    A.push(x);E.push(e);C.push(e-a)}
+  var cr=null,lo=0,lt=tm,j;
+  if(m>0){for(i=Math.round(tm*4);i<385;i++)if(C[i]<-1){cr=i/4;break}
+    if(cr!==null)for(j=Math.round(cr*4);j<385&&j<=Math.round((cr+4)*4);j++)if(C[j]<lo){lo=C[j];lt=j/4}}
+  return {A:A,C:C,pk:{t:tm,v:m},crash:cr,low:{t:lt,v:lo}}}
+function cafSummary(p,M){
+  var D=CAF[idx]||[],G=M.k.G,tot=cafTotal(),lim=limitMg(),o={adv:'',stats:'',msg:''};
+  if(!DAYS[idx]){o.msg='Save this day first (button on the left), then your caffeine forecast appears here.';return o}
+  var q=($('ctime').value||'08:00').split(':'),qh=(+q[0])+(+q[1]||0)/60,en=at(p,M.k,24+qh).e;
+  var lead='<b>Energy at '+ft(qh)+': '+Math.round(en)+'/100</b> ('+lvl(en)+'). ';
+  if(!D.length){o.msg=lead+'Tap a drink above to add it at that time and see when it wears off.';return o}
+  var pk=at(p,M.k,G.pk.t),nc=at(p,M.k,G.pk.t,true),bed=G.A[188]||0,w='';
+  var cr=G.crash===null?null:ft(G.crash-24),dip=Math.round(-G.low.v);
+  var txt='Peak buzz around '+ft(G.pk.t-24)+' (energy about '+Math.round(pk.e)+', +'+Math.round(pk.e-nc.e)+' from caffeine). '+
+    (cr?'You will start to crash around <b>'+cr+(G.crash>=48?' (next day)':'')+'</b>'+(dip>=1?', dipping about '+dip+' points below your no-caffeine level near '+ft(G.low.t-24)+'.':'.'):'No crash expected within the next day.');
+  if(tot>lim)w+='<p>'+tot+' mg is above the ~'+lim+' mg daily guideline for your age.</p>';
+  if(bed>=50)w+='<p>About '+Math.round(bed)+' mg will still be active at 11pm and may cost you sleep.</p>';
+  o.msg=lead+txt+w;
+  o.adv='<p>\u2615 '+txt+'</p>'+w;
+  o.stats='<div><small>Peak energy</small><strong>'+Math.round(pk.e)+'</strong><small>'+ft(G.pk.t-24)+'</small></div>'+
+    '<div><small>Crash starts</small><strong style="color:var(--bad)">'+(cr&&G.crash<48?ft(G.crash-24):'\u2014')+'</strong><small>'+(dip>=1?'down ~'+dip+' pts':'')+'</small></div>'+
+    '<div><small>Caffeine</small><strong style="color:'+(tot>lim?'var(--bad)':'inherit')+'">'+tot+' mg</strong><small>limit '+lim+'</small></div>';
+  return o}
+function cafUI(CS){
+  var D=CAF[idx]||[];
+  $('cafT').textContent='Caffeine on '+dateOf(idx+1).toLocaleDateString('en',{weekday:'long',day:'numeric',month:'short'});
+  setH('clist',D.map(function(d,i){return '<div class="dose"><span>'+ft(d.h)+' \u00b7 '+d.n+' \u00b7 '+d.mg+' mg</span><button type="button" data-r="'+i+'" aria-label="Remove '+d.n+' at '+ft(d.h)+'">\u00d7</button></div>'}).join(''));
+  setH('cstats',CS.stats);setH('cmsg',CS.msg)}
+function ageUI(){
+  var raw=parseInt($('age').value,10);
+  setH('ageNote',(raw<12?'This model is built for ages 12 and up, so it is using '+AGE+'. ':'')+'At '+AGE+' you need about '+sleepNeed()+' h of sleep, your energy peaks near '+ft(10+shift())+', and caffeine takes about '+halfLife().toFixed(1)+' h to halve.'+(AGE<18?' Under 18, health guidance is to keep caffeine under about 100 mg a day.':''))}
+function addDose(mg,n){
+  mg=clamp(Math.round(+mg)||0,5,600);var t=($('ctime').value||'08:00').split(':'),a=cf();
+  if(a.length>=12)return;
+  a.push({mg:mg,h:(+t[0])+(+t[1]||0)/60,n:n});a.sort(function(x,y){return x.h-y.h});render()}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function g(h,c,w){return Math.exp(-Math.pow((h-c)/w,2))}
+function circ(h){h=((h-shift())%24+24)%24;if(h>=23||h<6)return 24;if(h<7)return 38;return 50+26*g(h,10,3)+12*g(h,18,2.5)-24*g(h,15,1.6)}
+function lvl(v){return v<25?'very low':v<45?'low':v<65?'moderate':v<80?'high':'very high'}
+function fmt(h){h=Math.round(h)%24;var s=h>=12?'pm':'am';var x=h%12;return (x===0?12:x)+s}
+function dateOf(k){var d=new Date();d.setDate(d.getDate()-(TODAY-k));return d}
+function wd(k,o){return dateOf(k).toLocaleDateString('en',{weekday:'short'}).slice(0,3)}
+function startOf(){if(idx!==TODAY)return 21;var n=new Date();return n.getHours()+n.getMinutes()/60}
+function nowStr(sec){var o={hour:'numeric',minute:'2-digit'};if(sec)o.second='2-digit';return new Date().toLocaleTimeString('en',o).toLowerCase()}
+function at(p,k,t,nc,np){var h=t%24,d=Math.floor(t/24),work=(d===1&&p.meet>0&&h>=9&&h<9+p.meet)?p.meet:0;
+  var screen=Math.max(0,(p.screenTime||0)/60-3), screenPenalty=screen*.7;
+  var S=sens(),e=(np?circ(h):patE(h))+ageE()+p.steps/20000*6-(d===0?k.debt0*7*S:k.debt*8*S*[.3,1,.6,.3][d])-work*1.5-screenPenalty-(d===1?wdef(h)*8:0)+(nc?0:cfAt(k.G,t));
+  return {h:h,d:d,e:clamp(e,5,98),m:clamp(.65*e+22-work*1.2-screenPenalty*1.1,5,98)}}
+function model(p,last,prev,s0){
+  var N=sleepNeed(),w=.5*p.sleep+.3*last+.2*prev,lateCaffeine=(!p.coffeeNo&&p.coffeeTime>=16*60),screenHours=(p.screenTime||0)/60;
+  var caffeineDebt=lateCaffeine?Math.min(.75,(p.coffeeTime-16*60)/60*.25+.25):0;
+  var screenDebt=Math.max(0,screenHours-5)*.08;
+  var k={debt:Math.max(0,N-w+caffeineDebt+screenDebt),debt0:Math.max(0,N-(.6*last+.4*prev)),G:cafGrid(CAF[idx]||[])},pts=[];
+  for(var i=0;i<=24;i++){var o=at(p,k,s0+i*3);o.i=i;pts.push(o)}
+  var tot=cafTotal(),over=tot>limitMg()?Math.min(15,Math.round((tot-limitMg())/20)+3):tot>=250?2:0;
+  var risk=[1,2,3].map(function(d){var r=8+k.debt*10*sens()*[1,.6,.3][d-1]+(d===1?over+(p.meet>5?(p.meet-5)*3:0):0)-(p.steps>8000?4:0)+Math.max(0,screenHours-5)*1.5+(lateCaffeine?3:0)+pv('risk')+(d===1?Math.round(12*wdef(22)):0);return clamp(Math.round(r),3,95)});
+  return {pts:pts,risk:risk,debt:k.debt,k:k};
+}
+function prevs(){return [idx>0&&DAYS[idx-1]?DAYS[idx-1].sleep:sleepNeed(), idx>1&&DAYS[idx-2]?DAYS[idx-2].sleep:sleepNeed()]}
+function avgTm(p){var v=prevs(),r=model(p,v[0],v[1],startOf()).pts.filter(function(x){return x.d===1&&x.h>=8&&x.h<=20});return r.reduce(function(a,x){return a+x.e},0)/r.length}
+function path(pts,k){return pts.map(function(p,i){return (i?'L':'M')+(30+i/24*590).toFixed(1)+' '+(200-p[k]/100*170).toFixed(1)}).join(' ')}
+function tail(){
+  $('week').innerHTML=DAYS.map(function(d,i){return '<div class="'+(i===idx?'sel':'')+(d?'':' empty')+'" data-i="'+i+'" style="height:'+(d?d.sleep/12*100:6)+'%" title="'+(d?d.sleep+' h':'no data')+'" role="button" tabindex="0" aria-label="Open '+wd(i)+'"></div>'}).join('');
+  $('weekl').innerHTML=DAYS.map(function(d,i){return '<span>'+wd(i)+'</span>'}).join('');
+  document.documentElement.style.setProperty('--tx',(-(TODAY-idx)*STEP)+'vw');
+}
+function moodEmoji(v){return v<25?['\uD83D\uDE2B','Rough']:v<40?['\uD83D\uDE1E','Low']:v<55?['\uD83D\uDE10','Okay']:v<70?['\uD83D\uDE42','Good']:v<85?['\uD83D\uDE04','Great']:['\uD83E\uDD29','Fantastic']}
+function beat(sec,on,txt){var h=$('heart');h.style.setProperty('--beat',sec+'s');h.style.opacity=on?1:.45;setH('heartT',txt)}
+function moodUI(T){
+  if(!T){beat(1.6,false,'Energy pulse');setH('moodE','\uD83D\uDD2E');setH('moodD','Mood forecast');setH('moodT','Log a day to see your mood forecast');setH('moodP','');return}
+  var avg=function(a,b,k){var x=0,n=0;k=k||'m';for(var h=a;h<b;h++){x+=T[h][k];n++}return x/n},all=avg(8,21),m=moodEmoji(all),en=avg(8,21,'e');
+  beat((1.5-clamp(en,0,100)/100*1.0).toFixed(2),true,'Energy '+Math.round(en)+'/100');
+  setH('moodE',m[0]);setH('moodD','Mood forecast for '+dateOf(idx+1).toLocaleDateString('en',{weekday:'long'}));
+  setH('moodT',m[1]+' <span>'+Math.round(all)+'/100</span>');
+  setH('moodP',[['Morning',8,12],['Afternoon',12,17],['Evening',17,22]].map(function(q){var v=avg(q[1],q[2]),e=moodEmoji(v);return '<div title="'+q[0]+': '+e[1]+' ('+Math.round(v)+'/100)"><span>'+e[0]+'</span><small>'+q[0]+'</small></div>'}).join(''))}
+function render(){
+  patUI();
+  var rec=DAYS[idx],p=rec||DRAFT,v=prevs(),M=model(p,v[0],v[1],startOf());
+  var CS=cafSummary(p,M);cafUI(CS);ageUI();waterUI();$('cafLeg').innerHTML='';
+  var isT=idx===TODAY, ds=dateOf(idx).toLocaleDateString('en',{weekday:'long',day:'numeric',month:'short'});
+  $('dayLab').innerHTML=ds+(isT?' \u00b7 <span id="clk">'+nowStr(true)+'</span>':' \u00b7 '+(idx===TODAY-1?'Yesterday':(TODAY-idx)+' days ago'));
+  $('prev').disabled=idx===0;$('next').disabled=isT;
+  $('cap').textContent=isT?'Forecast from now ('+nowStr()+')':'Forecast made that evening, 9pm';
+  $('planT').textContent=(rec?'Edit ':'Log ')+(isT?'tonight':wd(idx)+"'s record");
+  $('lSleep').textContent=isT?'Sleep tonight':'Sleep that night';
+  $('sleep').value=p.sleep;$('steps').value=p.steps;$('meet').value=p.meet;$('coffee').value=p.coffeeTime==null?720:p.coffeeTime;$('noCoffee').checked=!!p.coffeeNo;$('screen').value=p.screenTime||0;
+  $('vSleep').textContent=p.sleep+' h \u00b7 '+(p.sleep<6?'Low':p.sleep<8?'Moderate':'High');$('vSteps').textContent=p.steps.toLocaleString('en')+' steps \u00b7 '+(p.steps<4000?'Low':p.steps<8000?'Moderate':'High');$('vMeet').textContent=p.meet+' h \u00b7 '+(p.meet<4?'Light':p.meet<8?'Moderate':'Heavy');
+  var cv=p.coffeeTime==null?720:p.coffeeTime,ch=Math.floor(cv/60),cm=cv%60,cap=(ch%12||12)+':'+String(cm).padStart(2,'0')+' '+(ch<12?'AM':'PM');$('vCoffee').textContent=p.coffeeNo?'No caffeine':cap;$('vScreen').textContent=Math.floor((p.screenTime||0)/60)+'h '+((p.screenTime||0)%60)+'m';$('coffee').disabled=!!p.coffeeNo;
+  $('coffeeSection').style.display=isT?'block':'none';$('noCoffeeSection').style.display=isT?'block':'none';$('screenSection').style.display='block';
+  /* Always render the forecast from the current inputs. A day does not need to be saved first. */
+  $('reset').textContent=rec?'Clear this day':'Save this day';
+  $('cap').textContent=(rec?'Tomorrow, ':'Preview for ')+dateOf(idx+1).toLocaleDateString('en',{weekday:'long',day:'numeric',month:'short'});
+  var s='',X=function(h){return 44+h/24*580},Y=function(v){return 200-v/100*170},T=[];
+  for(var h=0;h<=24;h++)T.push(at(p,M.k,24+h));
+  [0,50,100].forEach(function(v){s+='<line x1="44" y1="'+Y(v)+'" x2="624" y2="'+Y(v)+'" stroke="rgba(255,255,255,.15)"/>'});
+  [0,3,6,9,12,15,18,21,24].forEach(function(h){s+='<line x1="'+X(h)+'" y1="20" x2="'+X(h)+'" y2="200" stroke="rgba(255,255,255,.15)"/>'});
+  ['m','e'].forEach(function(k){s+='<path d="'+T.map(function(o,i){return (i?'L':'M')+X(i).toFixed(1)+' '+Y(o[k]).toFixed(1)}).join(' ')+'" fill="none" stroke="var(--'+(k==='e'?'energy':'mood')+')" stroke-width="'+(k==='e'?4:3)+'" stroke-linejoin="round"/>'});
+  [0,50,100].forEach(function(v){s+='<text x="38" y="'+(Y(v)+4)+'" text-anchor="end" font-size="11" fill="rgba(255,255,255,.55)">'+v+'</text>'});
+  [0,3,6,9,12,15,18,21,24].forEach(function(h){s+='<text x="'+X(h)+'" y="218" text-anchor="middle" font-size="11" fill="rgba(255,255,255,.55)">'+ft(h)+'</text>'});
+  var G=M.k.G,D=CAF[idx]||[];
+  if(D.length){
+    $('cafLeg').innerHTML='<span><i style="background:repeating-linear-gradient(90deg,var(--energy) 0 5px,transparent 5px 9px)"></i>Energy without caffeine</span>';
+    s+='<path d="'+T.map(function(o,i){return (i?'L':'M')+X(i).toFixed(1)+' '+Y(at(p,M.k,24+i,true).e).toFixed(1)}).join(' ')+'" fill="none" stroke="var(--energy)" stroke-width="2" stroke-dasharray="5 5" opacity=".65"/>';
+    if(G.crash!==null&&G.crash>=24&&G.crash<=48){var cx=X(G.crash-24);s+='<line x1="'+cx+'" y1="20" x2="'+cx+'" y2="200" stroke="var(--bad)" stroke-width="2" stroke-dasharray="4 4"/><text x="'+cx+'" y="14" text-anchor="'+(cx>560?'end':'middle')+'" font-size="12" fill="var(--bad)">crash</text>'}
+    D.forEach(function(d){s+='<circle cx="'+X(d.h)+'" cy="'+Y(at(p,M.k,24+d.h).e)+'" r="5" fill="#fff" stroke="var(--energy)" stroke-width="2"><title>'+d.n+' '+d.mg+' mg at '+ft(d.h)+'</title></circle>'})}
+  if(WI!==null){var P2=Object.assign({},p,{sleep:WI}),M2=model(P2,v[0],v[1],startOf()),T2=[],a1=0,a2=0,hh;
+    for(hh=0;hh<=24;hh++)T2.push(at(P2,M2.k,24+hh));
+    for(hh=8;hh<=20;hh++){a1+=T[hh].e;a2+=T2[hh].e}
+    s+='<path d="'+T2.map(function(o,i){return (i?'L':'M')+X(i).toFixed(1)+' '+Y(o.e).toFixed(1)}).join(' ')+'" fill="none" stroke="var(--ok)" stroke-width="3" stroke-dasharray="2 6" stroke-linecap="round"/>';
+    $('cafLeg').innerHTML+='<span><i style="background:var(--ok)"></i>Energy if you sleep '+WI+' h</span>';
+    var dl=Math.round((a2-a1)/13);$('vWi').textContent=WI+' h \u00b7 '+(dl>=0?'+':'')+dl+' energy'}else $('vWi').textContent='\u2014';
+  $('chart').innerHTML=s;moodUI(T);LT=T;
+  $('risk').innerHTML=M.risk.map(function(r,i){var pct=Math.round(Math.max(0,Math.min(100,r)));
+    return '<div><small>'+wd(idx+i+1)+'</small><strong>'+pct+'%</strong></div>'}).join('');
+  var tm=M.pts.filter(function(x){return x.i<=8&&x.h>=8&&x.h<=20}),dw=function(x){return isT?(x.d===0?'today':'tomorrow'):wd(idx+x.d)};
+  var best=tm.reduce(function(a,x){return x.e>a.e?x:a}),worst=tm.reduce(function(a,x){return x.e<a.e?x:a});
+  setH('kpis','<div><small>Best focus time</small><strong>'+fmt(best.h)+'</strong><span>'+dw(best)+'</span></div><div><small>Energy dip</small><strong>'+fmt(worst.h)+'</strong><span>'+lvl(worst.e)+' \u00b7 '+Math.round(worst.e)+'/100</span></div><div><small>Headache risk</small><strong style="color:'+(M.risk[0]>=40?'var(--bad)':M.risk[0]>=25?'var(--mid)':'var(--ok)')+'">'+M.risk[0]+'%</strong><span>'+dw({d:1,h:0}).replace('today','today')+'</span></div>');
+  var sk=streak();setH('headline','Best focus near '+fmt(best.h)+', energy dip near '+fmt(worst.h)+'.'+(sk>=2?' \uD83D\uDD25 '+sk+'-day logging streak':''));
+  var out='<p><b>Hardest work fits best around '+fmt(best.h)+' '+dw(best)+'.</b> A crash is likely around '+fmt(worst.h)+' '+dw(worst)+' (energy will be '+lvl(worst.e)+').</p>';
+  if(M.debt>1.2){var gain=Math.round(avgTm(Object.assign({},p,{sleep:8}))-avgTm(p));
+    out+='<p>Sleep is the biggest lever: more sleep that night would lift the next day\'s average energy '+(gain<3?'slightly':gain<8?'noticeably':'a lot')+'.</p>'}
+  else out+='<p>Sleep is on track, so energy should stay steady through the day.</p>';
+  if(M.risk[0]>=40)out+='<p>Headache risk is elevated. Drink water early and keep screen breaks short and regular.</p>';
+  if(p.meet>=6)out+='<p>A long work day will drag the afternoon down. Put the hardest task in the morning peak and take a 10 minute walk between tasks.</p>';
+  out+=CS.adv;$('advice').innerHTML=out;
+  persist();
+  tail();
+}
+function go(i){idx=clamp(i,0,TODAY);render()}
+$('prev').addEventListener('click',function(){go(idx-1)});
+$('next').addEventListener('click',function(){go(idx+1)});
+document.addEventListener('keydown',function(e){if(e.target.tagName==='INPUT')return;if(e.key==='ArrowLeft')go(idx-1);if(e.key==='ArrowRight')go(idx+1)});
+$('week').addEventListener('click',function(e){var i=e.target.getAttribute('data-i');if(i!==null)go(+i)});
+$('week').addEventListener('keydown',function(e){var i=e.target.getAttribute('data-i');if(i!==null&&(e.key==='Enter'||e.key===' ')){e.preventDefault();go(+i)}});
+[['sleep','sleep'],['steps','steps'],['meet','meet']].forEach(function(a){$(a[0]).addEventListener('input',function(){(DAYS[idx]||DRAFT)[a[1]]=+this.value;var q=+this.value,t=a[0]==='sleep'?q+' h':a[0]==='steps'?q.toLocaleString('en')+' steps':q+' h';$(a[0]==='sleep'?'vSleep':a[0]==='steps'?'vSteps':'vMeet').textContent=t;});$(a[0]).addEventListener('change',render)});
+$('coffee').addEventListener('input',function(){(DAYS[idx]||DRAFT).coffeeTime=+this.value;});$('coffee').addEventListener('change',render);$('noCoffee').addEventListener('change',function(){(DAYS[idx]||DRAFT).coffeeNo=this.checked;render()});$('screen').addEventListener('input',function(){var v=Math.max(0,Math.min(1440,+this.value||0));(DAYS[idx]||DRAFT).screenTime=v;var h=Math.floor(v/60),m=v%60;$('vScreen').textContent=h+'h '+m+'m';});$('screen').addEventListener('change',render);
+$('reset').addEventListener('click',function(){if(DAYS[idx])DAYS[idx]=null;else DAYS[idx]={sleep:DRAFT.sleep,steps:DRAFT.steps,meet:DRAFT.meet,coffeeNo:DRAFT.coffeeNo,coffeeTime:DRAFT.coffeeTime,screenTime:DRAFT.screenTime};render()});
+$('chips').addEventListener('click',function(e){var b=e.target.closest('button');if(b)addDose(b.getAttribute('data-mg'),b.getAttribute('data-n'))});
+$('cadd').addEventListener('click',function(){addDose($('cmg').value,'Custom')});
+$('clist').addEventListener('click',function(e){var b=e.target.closest('button');if(b){cf().splice(+b.getAttribute('data-r'),1);render()}});
+$('ctime').addEventListener('input',render);
+$('age').addEventListener('input',function(){$('vAge').textContent=this.value+' years';var v=parseInt(this.value,10);if(v>=12)AGE=Math.min(v,100);render()});
+$('condList').addEventListener('change',function(e){var c=e.target.getAttribute('data-c');if(c){PAT.on[c]=e.target.checked;render()}});
+$('pstr').addEventListener('change',function(){PAT.str=+this.value||1;render()});
+$('med').addEventListener('change',function(){PAT.med=this.checked;render()});
+$('medT').addEventListener('change',function(){var q=(this.value||'08:00').split(':');PAT.medH=(+q[0])+(+q[1]||0)/60;render()});
+$('medD').addEventListener('change',function(){PAT.medDur=clamp(+this.value||8,2,14);render()});
+$('wchips').addEventListener('click',function(e){var b=e.target.closest('button');if(b)addWater(b.getAttribute('data-ml'))});
+$('wadd').addEventListener('click',function(){addWater($('wml').value)});
+$('wlist').addEventListener('click',function(e){var b=e.target.closest('button');if(b){wf().splice(+b.getAttribute('data-r'),1);render()}});
+$('wtime').addEventListener('input',render);
+restore();
+$('wi').addEventListener('input',function(){WI=+this.value;render()});$('wiOff').addEventListener('click',function(){WI=null;render()});
+$('demo').addEventListener('click',function(){var sl=[6.5,7,5.5,8,6,7.5,6.5,7];DAYS=DAYS.map(function(_,i){return {sleep:sl[i],steps:3000+i*1500,meet:4+(i%4)*2,coffeeNo:false,coffeeTime:720,screenTime:240+i*30}});CAF={};CAF[TODAY]=[{mg:95,h:8,n:'Coffee'},{mg:95,h:13,n:'Coffee'}];idx=TODAY;render()});
+(function(){var w=document.querySelector('.chart-wrap'),sv=$('chart'),ln=document.createElement('div');w.appendChild(ln);ln.className='hl';
+  function mv(e){if(!LT)return;var b=sv.getBoundingClientRect(),x=(e.clientX-b.left)/b.width*640,h=clamp(Math.round((x-44)/580*24),0,24),o=LT[h];ln.style.display='block';ln.style.left=(e.clientX-b.left)+'px';$('hov').innerHTML=ft(h)+' \u00b7 Energy '+Math.round(o.e)+' \u00b7 Mood '+Math.round(o.m)}
+  sv.addEventListener('pointermove',mv);sv.addEventListener('pointerleave',function(){ln.style.display='none';$('hov').textContent=''})})();
+render();
+setInterval(function(){var c=$('clk');if(c)c.textContent=nowStr(true);if(idx!==TODAY)return;var a=document.activeElement;if(a&&(a.tagName==='INPUT'||a.getAttribute('data-i')!==null))return;render()},1000);
+
+(function(){
+var MC=window.MC=window.MC||{};
+var open=$('sbGfx'),panel=$('bgPanel'),close=$('bgClose'),file=$('bgFile'),media=$('bgMedia'),clear=$('bgClear');
+var wheel=$('wheel'),wrap=$('wheelWrap'),thumb=$('wthumb'),sw=$('cswatch'),hexI=$('chex'),valI=$('cval');
+var SZ=170,H=210,SAT=.6,V=1,hasColor=false,currentUrl=null,dragging=false;
+function hsv2rgb(h,s,v){var c=v*s,x=c*(1-Math.abs((h/60)%2-1)),m=v-c,r,g,b;
+  if(h<60){r=c;g=x;b=0}else if(h<120){r=x;g=c;b=0}else if(h<180){r=0;g=c;b=x}else if(h<240){r=0;g=x;b=c}else if(h<300){r=x;g=0;b=c}else{r=c;g=0;b=x}
+  return [Math.round((r+m)*255),Math.round((g+m)*255),Math.round((b+m)*255)]}
+function rgb2hsv(r,g,b){r/=255;g/=255;b/=255;var mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,h=0;
+  if(d){if(mx===r)h=60*(((g-b)/d)%6);else if(mx===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4)}
+  if(h<0)h+=360;return [h,mx?d/mx:0,mx]}
+function toHex(c){return '#'+c.map(function(v){return ('0'+v.toString(16)).slice(-2)}).join('')}
+function parseHex(t){t=String(t).trim().replace(/^#/,'');if(/^[0-9a-f]{3}$/i.test(t))t=t.replace(/./g,'$&$&');if(!/^[0-9a-f]{6}$/i.test(t))return null;return [0,2,4].map(function(i){return parseInt(t.substr(i,2),16)})}
+function curHex(){return toHex(hsv2rgb(H,SAT,V))}
+function drawWheel(){
+  var dpr=Math.min(window.devicePixelRatio||1,2),n=Math.round(SZ*dpr),r=n/2;
+  wheel.width=n;wheel.height=n;wheel.style.width=wheel.style.height=SZ+'px';
+  var ctx=wheel.getContext('2d'),img=ctx.createImageData(n,n),d=img.data;
+  for(var y=0;y<n;y++)for(var x=0;x<n;x++){
+    var dx=x+.5-r,dy=y+.5-r,dist=Math.sqrt(dx*dx+dy*dy),i=(y*n+x)*4;
+    if(dist>r)continue;
+    var rgb=hsv2rgb((Math.atan2(dy,dx)*180/Math.PI+360)%360,Math.min(dist/r,1),1);
+    d[i]=rgb[0];d[i+1]=rgb[1];d[i+2]=rgb[2];d[i+3]=Math.round(255*Math.min(1,r-dist));
+  }
+  ctx.putImageData(img,0,0);
+}
+function ui(){
+  var hex=curHex(),r=SZ/2,a=H*Math.PI/180;
+  sw.style.background=hex;hexI.value=hex;valI.value=Math.round(V*100);
+  thumb.style.left=(r+Math.cos(a)*SAT*r)+'px';thumb.style.top=(r+Math.sin(a)*SAT*r)+'px';thumb.style.background=hex;
+  wheel.style.filter='brightness('+(.4+.6*V).toFixed(2)+')';
+  return hex;
+}
+function revoke(){if(currentUrl){URL.revokeObjectURL(currentUrl);currentUrl=null}}
+function store(fn){try{var o=JSON.parse(localStorage.getItem('mc_gfx')||'null')||{};fn(o);localStorage.setItem('mc_gfx',JSON.stringify(o))}catch(e){}}
+function applyColor(save){
+  var hex=ui();hasColor=true;revoke();media.innerHTML='';media.style.background=hex;media.style.display='block';
+  if(save!==false){store(function(o){o.color=hex;delete o.pic});if(MC.queueSave)MC.queueSave()}
+}
+function showImg(url){media.innerHTML='';var img=document.createElement('img');img.src=url;img.alt='Uploaded background';media.appendChild(img);media.style.display='block'}
+function setFromHex(hex,save){var rgb=parseHex(hex);if(!rgb)return false;var h=rgb2hsv(rgb[0],rgb[1],rgb[2]);H=h[0];SAT=h[1];V=h[2];applyColor(save);return true}
+function resetAll(save){
+  revoke();media.innerHTML='';media.style.background='';media.style.display='none';hasColor=false;file.value='';
+  if(save!==false){store(function(o){delete o.color;delete o.pic});if(MC.queueSave)MC.queueSave()}
+}
+/* hooks used by the account system */
+MC.getColor=function(){return hasColor?curHex():null};
+MC.applyColor=function(hex){if(hex&&parseHex(hex)){setFromHex(hex,false);store(function(o){o.color=curHex();delete o.pic})}else{resetAll(false);store(function(o){delete o.color;delete o.pic})}};
+
+function pick(e){
+  var b=wheel.getBoundingClientRect(),r=b.width/2,dx=e.clientX-b.left-r,dy=e.clientY-b.top-r;
+  H=(Math.atan2(dy,dx)*180/Math.PI+360)%360;SAT=Math.min(Math.sqrt(dx*dx+dy*dy)/r,1);applyColor();
+}
+wrap.addEventListener('pointerdown',function(e){dragging=true;try{wrap.setPointerCapture(e.pointerId)}catch(_){}pick(e);e.preventDefault()});
+wrap.addEventListener('pointermove',function(e){if(dragging)pick(e)});
+wrap.addEventListener('pointerup',function(){dragging=false});
+wrap.addEventListener('pointercancel',function(){dragging=false});
+wrap.addEventListener('keydown',function(e){
+  var k=e.key,ok=true;
+  if(k==='ArrowRight')H=(H+5)%360;else if(k==='ArrowLeft')H=(H+355)%360;else if(k==='ArrowUp')SAT=Math.min(1,SAT+.05);else if(k==='ArrowDown')SAT=Math.max(0,SAT-.05);else ok=false;
+  if(ok){e.preventDefault();applyColor()}
+});
+valI.addEventListener('input',function(){V=(+valI.value)/100;applyColor()});
+hexI.addEventListener('change',function(){if(!setFromHex(hexI.value))ui()});
+
+var lastFocus=null;
+function show(){lastFocus=document.activeElement;panel.hidden=false;ui();wrap.focus()}
+function hide(){panel.hidden=true;(lastFocus||open).focus()}
+open.addEventListener('click',show);close.addEventListener('click',hide);
+panel.addEventListener('click',function(e){if(e.target===panel)hide()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!panel.hidden)hide()});
+
+file.addEventListener('change',function(){
+  var f=this.files&&this.files[0]; if(!f)return;
+  if(['image/png','image/jpeg','image/jpg','video/mp4'].indexOf(f.type)<0){alert('Please choose a PNG or JPEG image, or an MP4 video.');this.value='';return}
+  revoke();currentUrl=URL.createObjectURL(f);media.innerHTML='';
+  if(f.type.indexOf('image/')===0){showImg(currentUrl)}
+  else{var v=document.createElement('video');v.src=currentUrl;v.autoplay=true;v.loop=true;v.muted=true;v.playsInline=true;media.appendChild(v);media.style.display='block';v.play().catch(function(){})}
+  if(f.type.indexOf('image/')===0&&f.size<=2e6){var rd=new FileReader();rd.onload=function(){store(function(o){o.pic=rd.result})};rd.readAsDataURL(f)}
+  else store(function(o){delete o.pic});
+  hide();
+});
+clear.addEventListener('click',function(){resetAll();hide()});
+
+drawWheel();ui();
+/* restore the saved look on page load */
+try{var o=JSON.parse(localStorage.getItem('mc_gfx')||'null');
+  if(o){if(o.color)setFromHex(o.color,false);
+    if(o.pic&&/^data:image\/(png|jpe?g);base64,/.test(o.pic))showImg(o.pic)}}catch(e){}
+})();
+</script>
+<script>
+(function(){
+var ai=$('ai'),log=$('aiLog'),inp=$('aiMsg'),hist=[],busy=false,started=false;
+function ask1(){ask('Ask me one short question that would improve my forecast.',true)}
+function open(v){ai.hidden=!v;document.body.classList.toggle('ai-open',v);$('sbAi').setAttribute('aria-expanded',v);if(v&&!started){started=true;greet();ask1()}}
+$('sbAi').addEventListener('click',function(){open(ai.hidden)});
+$('aiClose').addEventListener('click',function(){open(false)});
+function add(t,who){var d=document.createElement('div'),x=d;d.className='am '+who;if(who==='ai'){d.innerHTML='<svg class="orb av" width="22" height="22" aria-hidden="true"><use href="#orb"/></svg><span class="tx"></span>';x=d.lastChild}x.textContent=t;log.appendChild(d);log.scrollTop=log.scrollHeight;return x}
+function greet(){var h=new Date().getHours();add((h<12?'Good morning.':h<18?'Good afternoon.':'Good evening.')+' I am Nova, your forecast assistant. Tell me about your day and I will keep the numbers up to date.','ai')}
+function ctx(){
+  var rec=DAYS[idx],p=rec||DRAFT,v=prevs(),M=model(p,v[0],v[1],startOf()),G=M.k.G,D=CAF[idx]||[],hrs=[],tm=[],h;
+  for(h=6;h<=22;h+=2)hrs.push(ft(h)+': '+Math.round(at(p,M.k,24+h).e));
+  for(h=8;h<=20;h++)tm.push({h:h,e:at(p,M.k,24+h).e});
+  var b=tm.reduce(function(a,x){return x.e>a.e?x:a}),w=tm.reduce(function(a,x){return x.e<a.e?x:a});
+  return {dayViewed:wd(idx)+(idx===TODAY?' (today)':''),forecastFor:dateOf(idx+1).toLocaleDateString('en',{weekday:'long'}),
+    dayIsLogged:!!rec,age:AGE,sleepHours:p.sleep,activitySteps:p.steps,workHoursNextDay:p.meet,screenMinutes:p.screenTime||0,
+    noCaffeineDay:!!p.coffeeNo,lastCaffeineTime:p.coffeeNo?null:ft((p.coffeeTime==null?720:p.coffeeTime)/60),
+    drinks:D.map(function(d){return d.n+' '+d.mg+'mg at '+ft(d.h)}),totalCaffeineMg:cafTotal(),caffeineLimitMg:limitMg(),
+    headacheRiskPercent:M.risk.map(function(r,i){return wd(idx+i+1)+': '+r}).join(', '),
+    bestWorkTime:ft(b.h),lowestEnergyTime:ft(w.h),lowestEnergy:Math.round(w.e),
+    caffeineCrashStarts:G.crash===null?'none':ft(G.crash-24),caffeinePeak:D.length?ft(G.pk.t-24):'none',
+    conditionsOn:Object.keys(PAT.on).filter(function(c){return PAT.on[c]}),patternStrength:PAT.str,waterMl:waterTotal(),waterGoalMl:waterGoal(),hydrationShortfallEndOfDayPercent:Math.round(wdef(22)*100),stimulantMedication:PAT.med?('at '+ft(PAT.medH)+' for '+PAT.medDur+' h'):'none',energyByHour:hrs.join(', '),sleepDebtHours:+M.debt.toFixed(1),idealSleepHours:sleepNeed()};
+}
+function apply(s){
+  if(!DAYS[idx])DAYS[idx]=Object.assign({},DRAFT);
+  var r=DAYS[idx];
+  if(s.sleep!=null)r.sleep=Math.round(clamp(+s.sleep||0,3,12)*2)/2;
+  if(s.steps!=null)r.steps=Math.round(clamp(+s.steps||0,0,20000)/500)*500;
+  if(s.work!=null)r.meet=Math.round(clamp(+s.work||0,0,12));
+  if(s.screenMinutes!=null)r.screenTime=Math.round(clamp(+s.screenMinutes||0,0,1440)/15)*15;
+  if(s.age!=null&&+s.age>=12){AGE=Math.min(Math.round(+s.age),100);$('age').value=AGE}
+  if(s.drink&&typeof s.drink==='object'){var d=s.drink,t=String(d.time||'08:00').split(':'),a=cf();
+    if(a.length<12){a.push({mg:clamp(Math.round(+d.mg)||0,5,600),h:clamp((+t[0]||0)+(+t[1]||0)/60,0,23.75),n:String(d.name||'Drink').slice(0,20)});a.sort(function(x,y){return x.h-y.h})}}
+  if(typeof s.adhd==='boolean')PAT.on.adhd=s.adhd;
+  if(Array.isArray(s.conditions)){PAT.on={};s.conditions.forEach(function(c){if(COND[c])PAT.on[c]=true})}
+  if(s.water&&typeof s.water==='object'){var wq=String(s.water.time||'08:00').split(':'),wa=wf();if(wa.length<24){wa.push({ml:clamp(Math.round(+s.water.ml)||0,50,2000),h:clamp((+wq[0]||0)+(+wq[1]||0)/60,0,23.75),n:'Water'});wa.sort(function(x,y){return x.h-y.h})}}
+  if(s.stimulant===false)PAT.med=false;
+  else if(s.stimulant&&typeof s.stimulant==='object'){var m=s.stimulant,q2=String(m.time||'08:00').split(':');PAT.med=true;PAT.medH=clamp((+q2[0]||0)+(+q2[1]||0)/60,0,23.75);PAT.medDur=clamp(Math.round(+m.hours)||8,2,14)}
+  render();
+}
+async function ask(text,hidden){
+  text=String(text).trim();if(!text||busy)return;
+  if(!hidden)add(text,'me');
+  hist.push({role:'user',content:text});inp.value='';busy=true;
+  var w=add('Analyzing your forecast\u2026','ai');w.classList.add('think');
+  try{
+    var r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:hist.slice(-10),forecast:ctx()})});
+    var j=await r.json();if(!r.ok)throw new Error(j.error||'failed');
+    var a=j.answer,m=a.match(/\n?SET (\{.*\})\s*$/);
+    if(m){try{apply(JSON.parse(m[1]))}catch(e){}a=a.replace(m[0],'')}
+    w.classList.remove('think');w.textContent=a.trim()||'Done.';hist.push({role:'assistant',content:j.answer});
+  }catch(e){w.classList.remove('think');w.textContent=(e&&e.message&&e.message!=='Failed to fetch'&&e.message!=='failed')?'Sorry, I hit a problem: '+e.message:'I cannot reach my servers. Run "py server.py" and open http://localhost:3000 (not the file directly).';hist.pop()}
+  busy=false;log.scrollTop=log.scrollHeight;
+}
+$('aiSend').addEventListener('click',function(){ask(inp.value)});
+inp.addEventListener('keydown',function(e){if(e.key==='Enter')ask(inp.value)});
+document.querySelectorAll('.aichips button').forEach(function(b){b.addEventListener('click',function(){ask(b.dataset.q)})});
+open(innerWidth>1200);
+})();
+</script>
+<script>
+(function(){
+var MC=window.MC=window.MC||{},user=null,timer=null,mode='login';
+var panel=$('accPanel'),openB=$('sbAcc'),closeB=$('accClose'),out=$('accOut'),inn=$('accIn'),form=$('accForm'),
+    uI=$('accUser'),pI=$('accPass'),err=$('accErr'),go=$('accGo'),hint=$('accHint'),tL=$('tabLogin'),tS=$('tabSignup');
+function api(path,body){
+  var o={credentials:'same-origin'};
+  if(body!==undefined){o.method='POST';o.headers={'Content-Type':'application/json'};o.body=JSON.stringify(body)}
+  return fetch(path,o).then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok)throw new Error(j.error||'Request failed');return j})});
+}
+function msg(e){return (e&&e.message&&e.message!=='Failed to fetch')?e.message:'Cannot reach the server. Run "py server.py" and open http://localhost:3000 (not the file directly).'}
+function blob(){var fp=null;try{fp=localStorage.getItem('fp1')}catch(e){}return {color:MC.getColor?MC.getColor():null,fp:fp}}
+function saveNow(){clearTimeout(timer);timer=null;if(user)api('/api/save',{data:blob()}).catch(function(){})}
+MC.queueSave=function(){if(!user)return;clearTimeout(timer);timer=setTimeout(saveNow,1200)};
+/* also save forecast data whenever the page persists it */
+if(typeof persist==='function'){var _p=persist;persist=function(){var r=_p.apply(this,arguments);MC.queueSave();return r}}
+function renderAcc(){
+  $('accAv').textContent=user?user.charAt(0).toUpperCase():'\uD83D\uDC64';
+  $('accName').textContent=user||'Account';
+  $('accSub').textContent=user?'Signed in':'Log in or sign up';
+  out.hidden=!!user;inn.hidden=!user;$('accWho').textContent=user||'';
+  $('accTitle').textContent=user?'Account':(mode==='signup'?'Create account':'Log in');
+}
+function setMode(m){
+  mode=m;tL.setAttribute('aria-selected',m==='login');tS.setAttribute('aria-selected',m==='signup');
+  go.textContent=m==='login'?'Log in':'Create account';hint.hidden=m!=='signup';
+  pI.setAttribute('autocomplete',m==='login'?'current-password':'new-password');err.hidden=true;renderAcc();
+}
+function applyData(d){
+  if(!d)return false;
+  if(MC.applyColor)MC.applyColor(d.color||null);
+  if(d.fp){try{localStorage.setItem('fp1',d.fp);restore();render()}catch(e){}}
+  return true;
+}
+var lastFocus=null;
+function show(){lastFocus=document.activeElement;panel.hidden=false;err.hidden=true;(user?$('accLogout'):uI).focus()}
+function hide(){panel.hidden=true;(lastFocus||openB).focus()}
+openB.addEventListener('click',show);closeB.addEventListener('click',hide);
+panel.addEventListener('click',function(e){if(e.target===panel)hide()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!panel.hidden)hide()});
+tL.addEventListener('click',function(){setMode('login')});tS.addEventListener('click',function(){setMode('signup')});
+form.addEventListener('submit',function(e){
+  e.preventDefault();err.hidden=true;
+  var name=uI.value.trim(),pw=pI.value;
+  if(!name||!pw){err.textContent='Enter a username and password.';err.hidden=false;return}
+  go.disabled=true;
+  api(mode==='login'?'/api/login':'/api/signup',mode==='login'?{username:name,password:pw}:{username:name,password:pw,data:blob()})
+   .then(function(j){
+     user=j.user;pI.value='';uI.value='';
+     if(mode==='login'&&!applyData(j.data))saveNow();
+     renderAcc();hide();
+   })
+   .catch(function(x){err.textContent=msg(x);err.hidden=false})
+   .then(function(){go.disabled=false});
+});
+$('accLogout').addEventListener('click',function(){
+  api('/api/logout',{}).catch(function(){}).then(function(){
+    try{localStorage.removeItem('fp1');localStorage.removeItem('mc_gfx')}catch(e){}
+    location.reload();
+  });
+});
+renderAcc();
+api('/api/me').then(function(j){if(j.user){user=j.user;applyData(j.data);renderAcc()}}).catch(function(){});
+})();
+</script>
+</body>
+</html>

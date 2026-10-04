@@ -1,0 +1,5 @@
+data/users.json
+data/users.json.tmp
+__pycache__/
+*.pyc
+*.log
